@@ -1,0 +1,271 @@
+.loading-screen {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.loading-screen > div {
+    position: absolute;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 9rem;
+    box-shadow: inset 0em 0em 0em 0.2em #7A0000;
+    top: 50%;
+    left: 50%;
+}
+
+.loading-screen > .dot1 {
+    animation: loadingAnimDot1 1s infinite;
+}
+
+@keyframes loadingAnimDot1 {
+    0% {
+        transform: translate(0rem, -2.5rem);
+    }
+    100% {
+        transform: translate(2.5rem, 2.5rem);
+    }
+}
+.loading-screen > .dot2 {
+    animation: loadingAnimDot2 1s infinite;
+}
+
+@keyframes loadingAnimDot2 {
+    0% {
+        transform: translate(2.5rem, 2.5rem);
+    }
+    100% {
+        transform: translate(-2.5rem, 2.5rem);
+    }
+}
+.loading-screen > .dot3 {
+    animation: loadingAnimDot3 1s infinite;
+}
+
+@keyframes loadingAnimDot3 {
+    0% {
+        transform: translate(-2.5rem, 2.5rem);
+    }
+    100% {
+        transform: translate(0rem, -2.5rem);
+    }
+}
+
+.navbar {
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    background-color: #7A0000;
+    color: white;
+}
+
+.navbar a, .navbar span {
+    color: white;
+    text-decoration: none;
+    padding: 0.3rem 0.4rem;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.navbar a:hover, .navbar span:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-toggler {
+    position: relative;
+    outline: transparent;
+    border: none;
+    font-size: x-large;
+    color: white;
+    background-color: #7A0000;
+    margin-left: auto;
+}
+
+.navbarPopdown {
+    position: absolute;
+    margin-top: 1rem;
+    font-size: medium;
+    left: -1.5rem;
+    padding: 0.3rem;
+    border-radius: 5px;
+    background-color: #4b4947;
+}
+
+.signin-container, .signup-container {
+    height: 90svh;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.signin-form, .signup-form {
+    width: 20rem;
+    padding: 1.5rem;
+    background-color: #C5C0BF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.signin-form > :not(h2), .signup-form > :not(h2) {
+    margin: 0.5rem;
+    height: 1.5rem;
+    width: 90%;
+    border-radius: 3px;
+    border: none;
+    padding: 0.2rem 0.5rem;
+}
+
+.signin-form > button, .signup-form > button {
+    height: 2rem;
+    color: white;
+    background-color: #7A0000;
+}
+
+.Signintext, .Signuptext {
+    margin: 0.5rem 0;
+    color: #7A0000;
+    text-align: center;
+}
+
+.signup-form > .gender-options {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.profile-pic-container-upload {
+    text-align: center;
+    margin: 4rem 0;
+}
+
+.profile-pic-container-upload img {
+    border-radius: 9rem;
+    height: 9rem;
+    width: 9rem;
+    object-position: center;
+    object-fit: contain;
+    transition: 100ms ease-in;
+}
+
+.profile-pic-container-upload img:hover {
+    transform: scale(1.1);
+}
+
+.form-container {
+    display: flex;
+    justify-content: center;
+}
+
+.resume-input-form {
+    margin: 0 2rem;
+    padding: 1.5rem;
+    width: 50rem;
+    background-color: #C5C0BF;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.resume-input-form .row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.resume-input-form .row > * {
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    width: 45%;
+    color: #7A0000;
+    font-weight: bold;
+    line-height: 2rem;
+    font-size: small;
+}
+
+.resume-input-form .row > textarea {
+    resize: vertical;
+}
+
+.resume-input-form .submit-row > input {
+    background-color: #7A0000;
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    color: white;
+    border-radius: 3px;
+}
+
+.profile-container {
+    display: flex;
+    justify-content: space-around;
+    margin: 2rem 3rem;
+    align-items: center;
+}
+
+.profile-container > img {
+    height: 15rem;
+    width: 15rem;
+    border-radius: 9rem;
+    margin: 0 3rem;
+    object-position: center;
+    object-fit: contain;
+    animation: profilePicAnim 5s infinite;
+}
+
+@keyframes profilePicAnim {
+    0% {
+        box-shadow: 0 0 20rem red
+    }
+    25% {
+        box-shadow: 0 0 10rem red
+    }
+    50% {
+        box-shadow: 0 0 1rem red
+    }
+    75% {
+        box-shadow: 0 0 10rem red
+    }
+    100% {
+        box-shadow: 0 0 20rem red
+    }
+}
+
+.info-container {
+    padding: 1rem;
+    background-color: #94908C;
+    border-radius: 7px;
+    width: 100%;
+    max-width: 35rem;
+}
+
+.info-container > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid white;
+}
+
+.info-container > div > span {
+    color: #7A0000;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+@media (min-width: 750px) {
+    .navbar-toggler{display: none;}
+}
+
+@media (max-width: 750px) {
+    .profile-container {
+        flex-direction: column;
+        gap: 3rem;
+    }
+    .navbar span {
+        display: none;
+    }
+}
