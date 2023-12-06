@@ -10,6 +10,7 @@ import Signin from './signin/signin';
 import ProtectedRoutes from './protectedroutes/protectedroutes'
 import Navbar from './components/navbar'
 import Resume from './components/resume';
+import BuildResume from './components/buildResume';
 import { authenticate } from './redux/authSlice';
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
           <Route path="/resume" element={<ProtectedRoutes><Resume /></ProtectedRoutes>} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/build-resume" element={<BuildResume />} />
         </Routes>
       </BrowserRouter>
     </>
