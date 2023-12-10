@@ -1,0 +1,62 @@
+.profileContainer {
+    display: flex;
+    justify-content: space-around;
+    margin: 2rem 3rem;
+    align-items: center;
+}
+
+.profileContainer > img {
+    height: 15rem;
+    width: 15rem;
+    border-radius: 9rem;
+    margin: 0 3rem;
+    object-position: center;
+    object-fit: contain;
+    animation: profilePicAnim 5s infinite;
+}
+
+@keyframes profilePicAnim {
+    0% {
+        box-shadow: 0 0 20rem red
+    }
+    25% {
+        box-shadow: 0 0 10rem red
+    }
+    50% {
+        box-shadow: 0 0 1rem red
+    }
+    75% {
+        box-shadow: 0 0 10rem red
+    }
+    100% {
+        box-shadow: 0 0 20rem red
+    }
+}
+
+.infoContainer {
+    padding: 1rem;
+    background-color: #94908C;
+    border-radius: 7px;
+    width: 100%;
+    max-width: 35rem;
+}
+
+.infoContainer > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid white;
+}
+
+.infoContainer > div > span {
+    color: #7A0000;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 750px) {
+    .profileContainer {
+        flex-direction: column;
+        gap: 3rem;
+    }
+}

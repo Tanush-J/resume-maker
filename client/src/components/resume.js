@@ -8,6 +8,8 @@ import { ref, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config_db/firebase';
 import { toast } from 'react-toastify';
 
+import classes from './resume.module.css'
+
 const Resume = () => {
   const dispatch = useDispatch()
   const userId = JSON.parse(localStorage.getItem('yourpholio'))?.uid;
@@ -73,10 +75,10 @@ const Resume = () => {
   }, [dispatch])
 
   return (
-    <div className="profile-container">
-      <img src={profilePicURL} alt="Profile Pic" className="profile-pic"/>
+    <div className={classes.profileContainer}>
+      <img src={profilePicURL} alt="Profile Pic" className={classes.profilePic}/>
       
-      <div className="info-container">
+      <div className={classes.infoContainer}>
         <div>
           <span>Name:</span>
           <p>{resumeData.name}</p>

@@ -10,7 +10,7 @@ import Signin from './signin/signin';
 import ProtectedRoutes from './protectedroutes/protectedroutes'
 import Navbar from './components/navbar'
 import Resume from './components/resume';
-import BuildResume from './components/buildResume';
+import BuildResume from './components/resumeBuilder/buildResume';
 import { authenticate } from './redux/authSlice';
 
 function App() {

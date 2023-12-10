@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+const puppeteer = require('puppeteer');
 const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = require('firebase/auth');
 const { setDoc, doc } = require('@firebase/firestore');
 
@@ -7,7 +9,31 @@ const { auth, db } = require('./firebase')
 const app = express();
 const PORT = 5000;
 
+app.use(cors())
 app.use(express.json());
+
+app.post('/download', async (req, res) => {
+  const { componentHTML } = req.body;
+
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+
+  // Set content with HTML received from the client
+  await page.setContent(componentHTML);
+  await page.addScriptTag({ path: 'fontAwesome.js' })
+  await page.addStyleTag({ path: '../client/src/components/resumeBuilder/mainResume.css' })
+
+  // Generate PDF
+  // await page.goto('data:text/html,' + page, {waitUntil: 'networkidle'});
+  const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+  await browser.close();
+
+  // Send the PDF as a response
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename=generated.pdf');
+
+  res.send(pdfBuffer);
+})
 
 app.post('/signin', (req, res) => {
     const formData = req.body;

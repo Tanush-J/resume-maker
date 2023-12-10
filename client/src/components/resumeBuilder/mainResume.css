@@ -1,0 +1,142 @@
+.resumeBackground {
+    width: 210mm;
+    height: 297mm;
+    background-color: white;
+    font-family: Inter,Helvetica,Arial,"Sans-Serif";
+    padding: 60px 60px 0px;
+}
+
+.resumeBody {
+    color: black;
+    font-size: 14px;
+}
+
+.resumeBody > h1, h2, h3 {
+    margin: 0;
+}
+
+.resumeHeader {
+    padding: 8px 16px;
+}
+
+.resumeHeader > h1 {
+    text-transform: uppercase;
+}
+
+.resumeHeader > .contactInfo {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.resumeInfoBody {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr 40%;
+}
+
+.sectionHeading {
+    padding: 8px 16px 0px;
+}
+
+.sectionHeading > h2 {
+    border-bottom: 3px solid black;
+}
+
+.linkField {
+    word-break: break-all;
+}
+
+.experienceItemIconContainer {
+    margin: 4px 0 0;
+    padding-right: 8px;
+}
+
+.resumeFindMeOnlineSection .linkField {
+    padding: 4px 0 0 32px;
+    font-size: 13px;
+}
+
+.itemObject {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 16px;
+}
+
+.itemObject h3 {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.itemObject h4 {
+    margin: 4px 0 0;
+    color: #1e90ff;
+}
+
+.itemObject > ul {
+    margin: 3px 0 0;
+}
+
+.socialIconContainer {
+    display: flex;
+    align-items: center;
+}
+
+.socialIconContainer > i {
+    color: #1e90ff;
+    margin: 10px 10px 10px 0;
+}
+
+.socialIconContainer p {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.itemSeperator {
+    display: block;
+    height: 1px;
+    border-bottom: 1px dashed #ccc;
+    margin: 0 16px 0;
+}
+
+.skillContainer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 10px;
+    row-gap: 10px;
+}
+
+.skillContainer > span {
+    color: #384347;
+    font-weight: 700;
+    padding: 5px 8px;
+    border-bottom: 1px solid #a9a9a9;
+}
+
+.resumeEducationSection > .itemObject {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.resumeEducationSection .educationItemGpa {
+    margin-left: 16px;
+    padding-left: 12px;
+    border-left: 1px solid #ccc;
+    min-width: fit-content;
+}
+
+.resumeEducationSection .educationItemGpa > p {
+    font-size: 11px;
+    font-weight: 400;
+    text-align: center;
+}
+
+.educationItemGpa .score {
+    color: #1e90ff;
+    font-weight: 700;
+}
+
+.resumeTrainingCoursesSection p {
+    margin: 0;
+    padding-top: 4px;
+}

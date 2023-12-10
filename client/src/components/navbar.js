@@ -8,6 +8,8 @@ import { authenticate } from "../redux/authSlice";
 import { toast } from "react-toastify";
 import { useState } from "react";
 
+import classes from './navbar.module.css'
+
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -29,7 +31,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="navbar">
+      <nav className={classes.navbar}>
         {isAuthenticated && (
           <>
             <NavLink to="/">Details</NavLink>
@@ -37,9 +39,9 @@ const Navbar = () => {
           </>
         )}
 
-        {isAuthenticated && <button onClick={() => setNavToggle(prevState => !prevState)} className="navbar-toggler" >
+        {isAuthenticated && <button onClick={() => setNavToggle(prevState => !prevState)} className={classes.navbarToggler} >
           ☰
-        {navToggle && <div className="navbarPopdown" onClick={handleLogout}>Logout</div>}
+        {navToggle && <div className={classes.navbarPopdown} onClick={handleLogout}>Logout</div>}
         </button>}
 
         {!isAuthenticated ? (

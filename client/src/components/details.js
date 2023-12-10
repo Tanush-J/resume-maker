@@ -7,6 +7,8 @@ import { db, storage } from "../config_db/firebase";
 import { uploadBytesResumable, ref, getDownloadURL } from "firebase/storage";
 import { setLoading } from "../redux/loadingSlice";
 
+import classes from './details.module.css';
+
 const Details = () => {
   const dispatch = useDispatch();
   const userId = JSON.parse(localStorage.getItem('yourpholio'))?.uid;
@@ -111,17 +113,17 @@ const Details = () => {
   
   return (
     <>
-    <div className="profile-pic-container-upload">
+    <div className={classes["profile-pic-container-upload"]}>
       <label>
         <img src={profilePicURL || "https://w1.pngwing.com/pngs/132/484/png-transparent-circle-silhouette-avatar-user-upload-pixel-art-user-profile-document-black.png"} alt="Upload Profile" className="round-pic"/>
         <input type="file" accept=".jpg, .jpeg, .png" onChange={handleFileChange} style={{ display: 'none' }}/>
       </label>
     </div>
 
-    <div className="form-container">
+    <div className={classes["form-container"]}>
       
-      <form onSubmit={handleSubmit} className='resume-input-form'>
-        <div className="row">
+      <form onSubmit={handleSubmit} className={classes['resume-input-form']}>
+        <div className={classes.row}>
           <label>
             Objective:
             <textarea name="objective" value={resumeData.objective} onChange={handleOnChange} ></textarea>
@@ -131,7 +133,7 @@ const Details = () => {
             <textarea name="experience" value={resumeData.experience} onChange={handleOnChange} ></textarea>
           </label>
         </div>
-        <div className="row">
+        <div className={classes.row}>
           <label>
             Education:
             <textarea name="education" value={resumeData.education} onChange={handleOnChange} ></textarea>
@@ -141,7 +143,7 @@ const Details = () => {
             <textarea type="text" name="skills" value={resumeData.skills} onChange={handleOnChange} ></textarea>
           </label>
         </div>
-        <div className="submit-row">
+        <div className={classes["submit-row"]}>
           <input type="submit" value="Update" />
         </div>
       </form>
