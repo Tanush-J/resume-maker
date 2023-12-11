@@ -20,19 +20,19 @@ app.post('/download', async (req, res) => {
 
   // Set content with HTML received from the client
   await page.setContent(componentHTML);
-  await page.addScriptTag({ path: 'fontAwesome.js' })
+  await page.addScriptTag({ url: 'https://kit.fontawesome.com/eefca83aa3.js' })
   await page.addStyleTag({ path: '../client/src/components/resumeBuilder/mainResume.css' })
 
   // Generate PDF
-  // await page.goto('data:text/html,' + page, {waitUntil: 'networkidle'});
+  await page.waitForNetworkIdle({ idleTime: 5000 });
   const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
   await browser.close();
-
   // Send the PDF as a response
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename=generated.pdf');
 
   res.send(pdfBuffer);
+
 })
 
 app.post('/signin', (req, res) => {

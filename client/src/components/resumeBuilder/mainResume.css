@@ -20,12 +20,23 @@
 }
 
 .resumeHeader > h1 {
+    margin: 0 0 4px 0;
     text-transform: uppercase;
 }
 
-.resumeHeader > .contactInfo {
+.resumeHeader .contactInfo {
     display: flex;
     flex-wrap: wrap;
+    row-gap: 5px;
+}
+
+.contactInfo span {
+    padding-right: 12px;
+}
+
+.contactInfo i {
+    margin-right: 4px;
+    color: #1e90ff;
 }
 
 .resumeInfoBody {
@@ -44,11 +55,31 @@
 
 .linkField {
     word-break: break-all;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.linkField i {
+    margin-right: 4px;
+}
+
+.linkField a {
+    color: black;
 }
 
 .experienceItemIconContainer {
     margin: 4px 0 0;
     padding-right: 8px;
+}
+
+.experienceItemIconContainer span {
+    padding-right: 8px;
+}
+
+.experienceItemIconContainer i {
+    margin-right: 5px;
+    vertical-align: text-top;
 }
 
 .resumeFindMeOnlineSection .linkField {
@@ -74,6 +105,7 @@
 
 .itemObject > ul {
     margin: 3px 0 0;
+    padding-left: 17px;
 }
 
 .socialIconContainer {
@@ -81,7 +113,7 @@
     align-items: center;
 }
 
-.socialIconContainer > i {
+.socialIconContainer i {
     color: #1e90ff;
     margin: 10px 10px 10px 0;
 }

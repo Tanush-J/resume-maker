@@ -49,7 +49,7 @@ function App() {
           <Route path="/resume" element={<ProtectedRoutes><Resume /></ProtectedRoutes>} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/build-resume" element={<BuildResume />} />
+          <Route path="/build-resume" element={<ProtectedRoutes><BuildResume /></ProtectedRoutes>} />
         </Routes>
       </BrowserRouter>
     </>

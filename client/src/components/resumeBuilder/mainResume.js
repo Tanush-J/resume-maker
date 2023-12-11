@@ -7,10 +7,10 @@ const MainResume = () => {
                 <div className="resumeHeader">
                     <h1>Tanush Jangid</h1> 
                     <div className="contactInfo">
-                        <span>75887794480</span>
-                        <span>tanushjangid1234@gmail.com</span>
-                        <span>www.linkedin.com/in/tanush-jangid-496232194</span>
-                        <span>Pune</span>
+                        <span><i class="fa-solid fa-phone fa-xs"></i>75887794480</span>
+                        <span><i class="fa-solid fa-at fa-xs"></i>tanushjangid1234@gmail.com</span>
+                        <span><i class="fa-solid fa-link fa-xs"></i>www.linkedin.com/in/tanush-jangid-496232194</span>
+                        <span><i class="fa-solid fa-location-dot fa-xs"></i>Pune</span>
                     </div>
                 </div>
                 <div className="resumeInfoBody">
@@ -23,8 +23,8 @@ const MainResume = () => {
                                 <h3>Software Engineer Trainee</h3>
                                 <h4>Capgemini</h4>
                                 <div className="experienceItemIconContainer">
-                                    <span>08/2022 - 12/2022&nbsp;</span>
-                                    <span>Pune</span>
+                                    <span><i class="fa-solid fa-calendar-days"></i>08/2022 - 12/2022&nbsp;</span>
+                                    <span><i class="fa-solid fa-location-dot"></i>Pune</span>
                                 </div>
                                 <ul>
                                     <li>{`Contributed to a industry 4.0 project "Intelligence Operation Platform (IOP)" involving data integration from various factories and machines into Azure tables.`}</li>
@@ -39,7 +39,10 @@ const MainResume = () => {
                             </div>
                             <div className="itemObject">
                                 <h3>{`Monitoring Of Indoor Hydroponic Farm System Using IOT and Machine Learning`}</h3>
-                                <div className="linkField">{`https://docs.google.com/document/d/1pWMDoQ9_hkl8_vUoZID55tSH44DsGZlVX4EyZs82lBQ/edit`}</div>
+                                <div className="linkField">
+                                    <i class="fa-solid fa-link fa-xs"></i>
+                                    <a href='https://docs.google.com/document/d/1pWMDoQ9_hkl8_vUoZID55tSH44DsGZlVX4EyZs82lBQ/edit'>{`https://docs.google.com/document/d/1pWMDoQ9_hkl8_vUoZID55tSH44DsGZlVX4EyZs82lBQ/edit`}</a>
+                                </div>
                                 <ul>
                                     <li>{`Aim of this project is to develop a remote hydroponic system that monitors various parameters and metrics for trained and untrained individuals.`}</li>
                                     <li>{`This was my final-year project, which involved creating a functional model with hardware components such as sensors, microcontroller, and actuators. The model communicated with software components like a web server and a website for data transmission and analytics.`}</li>
@@ -48,7 +51,10 @@ const MainResume = () => {
                             </div>
                             <div className="itemObject">
                                 <h3>{`Foodle Website — A food detail website`}</h3>
-                                <div className="linkField">{`https://foodles.onrender.com/`}</div>
+                                <div className="linkField">
+                                    <i class="fa-solid fa-link fa-xs"></i>
+                                    <a href='https://foodles.onrender.com/'>{`https://foodles.onrender.com/`}</a>
+                                </div>
                                 <ul>
                                     <li>{`A food details website where you can learn about different food shops around you and the food items they sell.`}</li>
                                     <li>{`You can view the different dishes available and get the location of the shop where they sell them.`}</li>
@@ -57,7 +63,10 @@ const MainResume = () => {
                             </div>
                             <div className="itemObject">
                                 <h3>{`E-Learn Website — An online E-learn website`}</h3>
-                                <div className="linkField">{`https://github.com/Tanush-J/WTLmini`}</div>
+                                <div className="linkField">
+                                    <i class="fa-solid fa-link fa-xs"></i>
+                                    <a href='https://github.com/Tanush-J/WTLmini'>{`https://github.com/Tanush-J/WTLmini`}</a>
+                                </div>
                                 <ul>
                                     <li>{`The aim of our project was to create an online learning platform website where you create your account Or sign in to the website, to view and watch different courses.`}</li>
                                     <li>{`This was my college mini-project for one of the subjects. So, my friend and I worked on this website.`}</li>
@@ -133,6 +142,7 @@ const MainResume = () => {
                                     </div>
                                 </div>
                             </div>
+                            <div className='itemSeperator'></div>
                             <div className="itemObject">
                                 <div>
                                     <h3>{`Class XII`}</h3>
@@ -148,6 +158,7 @@ const MainResume = () => {
                                     </div>
                                 </div>
                             </div>
+                            <div className='itemSeperator'></div>
                             <div className="itemObject">
                                 <div>
                                     <h3>{`Class X`}</h3>

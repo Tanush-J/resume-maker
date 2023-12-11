@@ -36,6 +36,7 @@ const Navbar = () => {
           <>
             <NavLink to="/">Details</NavLink>
             <NavLink style={{margin: '0 1rem'}} to="/resume">Resume</NavLink>
+            <NavLink to="/build-resume">Build Resume 2.0</NavLink>
           </>
         )}
 
