@@ -7,9 +7,9 @@ const MainResume = () => {
                 <div className="resumeHeader">
                     <h1>Tanush Jangid</h1> 
                     <div className="contactInfo">
-                        <span><i class="fa-solid fa-phone fa-xs"></i>75887794480</span>
+                        <span><i class="fa-solid fa-phone fa-xs"></i>+91 7588794480</span>
                         <span><i class="fa-solid fa-at fa-xs"></i>tanushjangid1234@gmail.com</span>
-                        <span><i class="fa-solid fa-link fa-xs"></i>www.linkedin.com/in/tanush-jangid-496232194</span>
+                        <span><i class="fa-brands fa-linkedin"></i>www.linkedin.com/in/tanush-jangid-496232194</span>
                         <span><i class="fa-solid fa-location-dot fa-xs"></i>Pune</span>
                     </div>
                 </div>
@@ -36,6 +36,18 @@ const MainResume = () => {
                         <div className="resumeProjectsSection">
                             <div className="sectionHeading">
                                 <h2>Projects</h2>
+                            </div>
+                            <div className="itemObject">
+                                <h3>{`Resume Maker App — EnhanCV Clone `}</h3>
+                                <div className="linkField">
+                                    <i class="fa-solid fa-link fa-xs"></i>
+                                    <a href='https://github.com/Tanush-J/resume-maker'>{`https://github.com/Tanush-J/resume-maker`}</a>
+                                </div>
+                                <ul>
+                                    <li>{`I'm currently working on a project that is an EnhanCV clone. EnhanCV is a popular resume-maker website where users can select a template, fill in their details, and download their resumes in PDF format.`}</li>
+                                    <li>{`EnhanCV is a premium service so their resumes are also quite modern. This resume template is also from their website, but I have recreated it in my app and downloaded it from there.`}</li>
+                                    <li>{`In terms of technology, the frontend is built using React.js with react-router for navigation. The server is powered by Express.js and Node.js, providing APIs to communication with the frontend. For database management and authentication, I've used Firebase in the system.`}</li>
+                                </ul>
                             </div>
                             <div className="itemObject">
                                 <h3>{`Monitoring Of Indoor Hydroponic Farm System Using IOT and Machine Learning`}</h3>
@@ -112,7 +124,7 @@ const MainResume = () => {
                                     <i className='fa-solid fa-briefcase fa-xl'></i>
                                     <p>Portfolio website</p>
                                 </div>
-                                <div className="linkField">{`https://tanushjangid-tanush-j.vercel.app/`}</div>
+                                <div className="linkField">{`https://tanushjangid.tech`}</div>
                             </div>
                             <div className='itemSeperator'></div>
                             <div className="itemObject">

@@ -45,6 +45,7 @@ const Signin = () => {
       navigate("/")
     })
     .catch(error => {
+      dispatch(setLoading(false));
       if(error.code === 'auth/invalid-login-credentials'){
         toast.error("Invalid email or password");
       } else {

@@ -42,7 +42,7 @@ const BuildResume = () => {
 
   return (
       <>
-          <button onClick={buttonHandle}>Click</button>
+          <button onClick={buttonHandle}>Download</button>
           <div className={classes.container}>
             <MainResume />
           </div>

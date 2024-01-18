@@ -69,6 +69,7 @@ const Signup = () => {
       navigate("/")
     })
     .catch((error) => {
+      dispatch(setLoading(false));
       if(error.code === 'auth/email-already-in-use'){
         toast.error("Email is already in use");
       } else {
