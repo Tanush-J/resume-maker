@@ -7,6 +7,7 @@
 }
 
 .resumeBody {
+    --p-color: #384347;
     color: black;
     font-size: 14px;
 }
@@ -33,7 +34,7 @@
 
 .contactInfo span {
     padding-right: 12px;
-    color: #384347;
+    color: var(--p-color);
     font-weight: 700;
 }
 
@@ -61,7 +62,7 @@
     margin-top: 4px;
     display: flex;
     align-items: center;
-    color: #384347;
+    color: var(--p-color);
 }
 
 .linkField i {
@@ -75,14 +76,14 @@
 .experienceItemIconContainer {
     margin: 4px 0 0;
     padding-right: 8px;
-    color: #384347;
+    color: var(--p-color);
 }
 
 .experienceItemIconContainer span {
     padding-right: 8px;
 }
 
-.experienceItemIconContainer i {
+.experienceItemIconContainer i, .resumeEducationSection i {
     margin-right: 5px;
     vertical-align: text-top;
 }
@@ -106,6 +107,8 @@
 .itemObject h4 {
     margin: 4px 0 0;
     color: #1e90ff;
+    display: flex;
+    align-items: center;
 }
 
 .itemObject > ul {
@@ -113,9 +116,20 @@
     padding-left: 17px;
 }
 
+.itemObject .certificateItemLink {
+    color: #1e90ff;
+    margin-left: auto;
+    margin-right: 5px;
+    height: 100%;
+    padding: 2px;
+}
+.itemObject .experienceItemLink {
+    color: #1e90ff;
+}
+
 .itemObject li {
     font-size: 13px;
-    color: #384347;
+    color: var(--p-color);
 }
 
 .socialIconContainer {
@@ -149,7 +163,7 @@
 }
 
 .skillContainer > span {
-    color: #384347;
+    color: var(--p-color);
     font-weight: 700;
     padding: 5px 8px;
     border-bottom: 1px solid #a9a9a9;
@@ -158,6 +172,7 @@
 .resumeEducationSection > .itemObject {
     flex-direction: row;
     justify-content: space-between;
+    color: var(--p-color);
 }
 
 .resumeEducationSection .educationItemGpa {
@@ -178,7 +193,8 @@
     font-weight: 700;
 }
 
-.resumeTrainingCoursesSection p {
+.resumeTrainingCoursesSection p, .resumeAchievementsSection p {
     margin: 0;
     padding-top: 4px;
+    color: var(--p-color);
 }
