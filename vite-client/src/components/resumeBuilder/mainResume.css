@@ -1,0 +1,130 @@
+/*
+ * mainResume.css — Editor shell styles
+ *
+ * Semantic resume styles (header, sections, items, fonts, colours) live in
+ * server/templates/classic.css and are imported below so the editor and the
+ * Puppeteer PDF share an identical visual source of truth.
+ *
+ * This file adds only browser-editor-specific rules:
+ *   - .resumeDocument scroll container + page gap
+ *   - .resumeRenderedPage wrapper
+ *   - .resumePageLabel (page count badge)
+ *   - .resumeMeasureLayer (off-screen DOM measurement)
+ *   - Print overrides (hide editor chrome, force page separation)
+ */
+
+/* ── Shared semantic styles (same file used by server/Puppeteer) ─────────── */
+/* Source of truth: server/templates/classic.css — keep in sync manually or via a build step. */
+@import url('./classic.css');
+
+/* ── Editor page scroll container ──────────────────────────────────── */
+
+.resumeDocument {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.resumeRenderedPage {
+    position: relative;
+    width: 100%;
+}
+
+/* ── Page label badge ─────────────────────────────────────────── */
+
+.resumePageLabel {
+    margin: 0 auto 0.5rem;
+    color: #6b7280;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ── Editor overrides for .resumePage ────────────────────────────── */
+/*
+ * In the editor the shared CSS sets page-break-after:always which is only
+ * relevant inside Puppeteer.  We override it so pages display as scrollable
+ * cards with box-shadow rather than forcing a browser print-page break.
+ */
+
+.resumePage {
+    width: min(100%, 794px);
+    min-height: 1123px;
+    padding: 60px 60px 0;
+    margin: 0 auto;
+    background: white;
+    box-sizing: border-box;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    page-break-after: unset;
+}
+
+/* ── Off-screen measurement layer ──────────────────────────────── */
+
+.resumeMeasureLayer {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+    width: 794px;
+    left: -100000px;
+    top: 0;
+}
+
+.resumeMeasureLayer .resumePage {
+    box-shadow: none;
+    page-break-after: auto;
+    break-after: auto;
+}
+
+/* ── Layout block container ────────────────────────────────────── */
+
+.layoutBlock {
+    min-width: 0;
+}
+
+.resumeRegion {
+    min-width: 0;
+}
+
+/* ── Print overrides ───────────────────────────────────────────── */
+
+/*
+ * classic.css already sets @page and page-break rules globally
+ * (used by both the browser print path and Puppeteer). This block
+ * only strips editor chrome when printing from the browser.
+ */
+@media print {
+    nav,
+    .no-print {
+        display: none !important;
+    }
+
+    .resumeDocument {
+        display: block;
+    }
+
+    .resumeRenderedPage {
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .resumeRenderedPage:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    .resumePageLabel {
+        display: none;
+    }
+
+    .resumeMeasureLayer {
+        display: none;
+    }
+
+    .resumePage {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        box-shadow: none;
+        padding: 60px 60px 0;
+    }
+}

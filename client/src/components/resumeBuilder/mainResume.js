@@ -7,10 +7,10 @@ const MainResume = () => {
                 <div className="resumeHeader">
                     <h1>Tanush Jangid</h1> 
                     <div className="contactInfo">
-                        <span><i class="fa-solid fa-phone fa-xs"></i>+91 7588794480</span>
+                        <span><i class="fa-solid fa-phone fa-xs"></i>+91 7420842106</span>
                         <span><i class="fa-solid fa-at fa-xs"></i>tanushjangid1234@gmail.com</span>
                         <span><i class="fa-brands fa-linkedin"></i>www.linkedin.com/in/tanush-jangid-496232194</span>
-                        <span><i class="fa-solid fa-location-dot fa-xs"></i>Pune</span>
+                        <span><i class="fa-solid fa-location-dot fa-xs"></i>Mumbai</span>
                     </div>
                 </div>
                 <div className="resumeInfoBody">
@@ -20,16 +20,28 @@ const MainResume = () => {
                                 <h2>Experience</h2>
                             </div>
                             <div className="itemObject">
+                                <h3>SDE</h3>
+                                <h4>BlaccSckull</h4>
+                                <div className="experienceItemIconContainer">
+                                    <span><i class="fa-solid fa-calendar-days"></i>10/2024 - Present&nbsp;</span>
+                                    <span><i class="fa-solid fa-location-dot"></i>Remote</span>
+                                </div>
+                                <ul>
+                                    <li>{`Collaborated on planning, designing, and developing core platform functionalities, driving app downloads from 500 to over 15K.`}</li>
+                                    <li>{`Implemented deep links and universal links in a React Native app, enhancing the new user onboarding experience and app navigation.`}</li>
+                                    <li>{`Optimized app performance by reducing API data transfer and Redux dispatch calls, and more resulting in improved touch responsiveness and overall efficiency.`}</li>
+                                </ul>
+                            </div>
+                            <div className="itemObject">
                                 <h3>SDE Intern</h3>
                                 <h4>BlaccSckull</h4>
                                 <div className="experienceItemIconContainer">
-                                    <span><i class="fa-solid fa-calendar-days"></i>04/2024 - Present&nbsp;</span>
+                                    <span><i class="fa-solid fa-calendar-days"></i>04/2024 - 09/2024&nbsp;</span>
                                     <span><i class="fa-solid fa-location-dot"></i>Pune</span>
                                 </div>
                                 <ul>
                                     <li>{`Created caching functionality using Redis for backend APIs. Reduced response times for consecutive API calls from 1-1.5 seconds to 10-20 milliseconds.`}</li>
-                                    <li>{`Developed user interfaces for a React Native app. Displayed user interactions and engagement within the app.`}</li>
-                                    <li>{`Developed and implemented workflows to capture and store user payment details. Ensured data was securely saved in both the database and Redux.`}</li>
+                                    <li>{`Developed user interfaces and workflows for a React Native app, enabling user interaction tracking, secure payment detail storage, and seamless data management with Redux and a database.`}</li>
                                     <li>{`Working on a workflow to store and host users' media files on AWS using S3 bucket and CloudFront.`}</li>
                                 </ul>
                             </div>
@@ -59,12 +71,12 @@ const MainResume = () => {
                                     <a target='_blank' href='https://github.com/Tanush-J/resume-maker'>{`https://github.com/Tanush-J/resume-maker`}</a>
                                 </div>
                                 <ul>
-                                    <li>{`I'm currently working on a project that is an EnhanCV clone. EnhanCV is a popular resume-maker website where users can select a template, fill in their details, and download their resumes in PDF format.`}</li>
-                                    <li>{`EnhanCV is a premium service so their resumes are also quite modern. This resume template is also from their website, but I have recreated it in my app and downloaded it from there.`}</li>
-                                    <li>{`In terms of technology, the front end is built using React.js with react-router for navigation. The server is powered by Express.js and Node.js, providing APIs to communicate with the front end. For database management and authentication, I've used Firebase in the system.`}</li>
+                                    <li>{`Currently building an EnhanCV-inspired resume-maker app, enabling users to select templates, input details, and download resumes as PDFs. This resume was created and downloaded using my app.`}</li>
+                                    <li>{`The project leverages React.js and react-router for the front end, Express.js and Node.js for the backend, and Firebase for database management and authentication.`}</li>
+                                    <li>{`The app focuses on delivering a modern and intuitive user experience, mirroring premium features like customizable templates and seamless PDF generation.`}</li>
                                 </ul>
                             </div>
-                            <div className="itemObject">
+                            {/* <div className="itemObject">
                                 <h3>{`Monitoring Of Indoor Hydroponic Farm System Using IOT and Machine Learning`}</h3>
                                 <div className="linkField">
                                     <i class="fa-solid fa-link fa-xs"></i>
@@ -72,11 +84,11 @@ const MainResume = () => {
                                 </div>
                                 <ul>
                                     <li>{`This project aims to develop a remote hydroponic system that monitors various parameters and metrics for trained and untrained individuals.`}</li>
-                                    <li>{`This was my final-year project, which involved creating a functional model with hardware components such as sensors, microcontrollers, and actuators. The model communicated with software components like a web server and a website for data transmission and analytics.`}</li>
-                                    <li>{`In our setup, we used multiple sensors for measuring pH, humidity, water level, and temperature. We also integrated a camera module to capture plant leaf images. These images were processed by a machine learning model to detect diseases, with the system offering suitable cures and preventive measures upon identification.`}</li>
+                                    <li>{`The system used sensors to measure pH, humidity, water level, and temperature, along with a camera module to capture plant leaf images. A machine learning model analyzed these images to detect diseases and recommend treatments.`}</li>
+                                    <li>{`The tech stack included microcontrollers, a Python-based machine learning model, a web server for data transmission, and a website for user interaction and analytics.`}</li>
                                 </ul>
-                            </div>
-                            <div className="itemObject">
+                            </div> */}
+                            {/* <div className="itemObject">
                                 <h3>{`Foodle Website — A food detail website`}</h3>
                                 <div className="linkField">
                                     <i class="fa-solid fa-link fa-xs"></i>
@@ -87,7 +99,7 @@ const MainResume = () => {
                                     <li>{`You can view the different dishes available and get the location of the shop where they sell them.`}</li>
                                     <li>{`You can also log in or sign up to leave a review for the dish.`}</li>
                                 </ul>
-                            </div>
+                            </div> */}
                             {/* <div className="itemObject">
                                 <h3>{`E-Learn Website — An online E-learn website`}</h3>
                                 <div className="linkField">
@@ -100,6 +112,17 @@ const MainResume = () => {
                                     <li>{`The website provides diverse courses that require login/signup for access. Users can view courses and post their own by creating a YouTube playlist and sharing the link on the site. The platform allows direct viewing of entire playlists on the website.`}</li>
                                 </ul>
                             </div> */}
+                            <div className="itemObject">
+                                <h3>{`Bank Security Application — Backend`}</h3>
+                                <div className="linkField">
+                                    <i class="fa-solid fa-link fa-xs"></i>
+                                    <a target='_blank' href='https://github.com/Tanush-J/Bank-Security-Application'>{`https://github.com/Tanush-J/Bank-Security-Application`}</a>
+                                </div>
+                                <ul>
+                                    <li>{`A Spring Boot-based backend for a secure banking application that handles user registration, login, account management, and transaction operations. It includes authentication, authorization, and role-based access control to enhance banking security.`}</li>
+                                    <li>{`The project is made using Java 17 and Spring Boot, implementing JWT-based authentication with Spring Security and database operations with Spring Data JPA. Utilized H2 for in-memory data storage, JavaMailSender for OTP-based email verification, and Lombok to streamline code.`}</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                     <div className="resumeBodyCol">
@@ -118,8 +141,11 @@ const MainResume = () => {
                                 <span>React-Native</span>
                                 <span>Node.js</span>
                                 <span>Express.js</span>
+                                <span>Spring-Boot</span>
                                 <span>MongoDB</span>
                                 <span>MySQL</span>
+                                <span>Java</span>
+                                <span>Agile</span>
                             </div>
                         </div>
                         <div className="resumeFindMeOnlineSection">
@@ -139,7 +165,7 @@ const MainResume = () => {
                                     <i className='fa-solid fa-briefcase fa-xl'></i>
                                     <p>Portfolio website</p>
                                 </div>
-                                <div className="linkField">{`https://tanushjangid.tech`}</div>
+                                <div className="linkField">{`https://tanushjangid.site`}</div>
                             </div>
                             <div className='itemSeperator'></div>
                             <div className="itemObject">
@@ -207,6 +233,11 @@ const MainResume = () => {
                                 <h2>Training / Courses</h2>
                             </div>
                             <div className="itemObject">
+                                <h4>{`Oracle AI Vector Search Certified Professional 2025`}<a target='_blank' className="certificateItemLink" href="https://drive.google.com/file/d/1xp8WPlIs9OlVrRDVWvgjaGLwZEAqFqCZ/view?usp=sharing"><i class="fa-solid fa-link fa-base"></i></a></h4>
+                                <p>{`Certified Oracle University course on vector data storage, indexing, embeddings, and building RAG applications using PL/SQL and Python.`}</p>
+                            </div>
+                            <div className='itemSeperator'></div>
+                            <div className="itemObject">
                                 <h4>{`OCI 2023 Certified Foundation Associate`}<a target='_blank' className="certificateItemLink" href="https://catalog-education.oracle.com/pls/certview/sharebadge?id=D2AA7E9D37E1C3F2F8C4C992ED8AFAA2CEE64B842480FBD0B0CF00EA57F00959"><i class="fa-solid fa-link fa-base"></i></a></h4>
                                 <p>{`Certified course from Oracle University covering concepts of Oracle Cloud Infrastructure`}</p>
                             </div>
@@ -215,11 +246,11 @@ const MainResume = () => {
                                 <h4>{`React - The Complete Guide 2023`}<a target='_blank' className="certificateItemLink" href="https://www.udemy.com/certificate/UC-dc85e03c-8e0a-4eaa-a109-8e75a6b9f66d/"><i class="fa-solid fa-link fa-base"></i></a></h4>
                                 <p>{`Udemy course covering fundamental and advanced react and redux concepts.`}</p>
                             </div>
-                            <div className='itemSeperator'></div>
+                            {/* <div className='itemSeperator'></div>
                             <div className="itemObject">
                                 <h4>{`The Web Developer Bootcamp 2022`}<a target='_blank' className="certificateItemLink" href="https://www.udemy.com/certificate/UC-b2f2e176-92b8-4dbe-b568-b491b99de90a/"><i class="fa-solid fa-link fa-base"></i></a></h4>
                                 <p>{`Udemy course covering HTML, CSS, Javascript, Express.js, Node.js, and MongoDB concepts.`}</p>
-                            </div>
+                            </div> */}
                         </div>
                         <div className="resumeAchievementsSection">
                             <div className="sectionHeading">

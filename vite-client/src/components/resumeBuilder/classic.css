@@ -1,0 +1,359 @@
+/*
+ * Classic Resume Template — Canonical Styles
+ *
+ * This file is the single source of truth for all visual styles.
+ * It is used by:
+ *   - server/templates/classic.js  → inlined into Puppeteer HTML
+ *   - vite-client/src/components/resumeBuilder/mainResume.css imports
+ *     the semantic class rules from here (page-shell CSS stays in mainResume.css).
+ *
+ * SECTIONS
+ *  1. Page shell  (resumePage, resumeBackground, resumeBody)
+ *  2. Header
+ *  3. Layout grid
+ *  4. Section headings
+ *  5. Item objects
+ *  6. Section-specific
+ *  7. Page continuation
+ *  8. Print / @page
+ */
+
+/* ── 0. Design tokens ────────────────────────────────────────────────────────
+ * Organised design/layout constants. Page geometry mirrors
+ * `classicTemplate.page` in templates.ts (single source of truth on the
+ * client; the server reads this same file for Puppeteer).
+ */
+
+:root {
+  /* Page geometry (CSS pixels — A4 @ 96dpi ≈ 794 × 1123) */
+  --resume-page-width: 794px;
+  --resume-page-height: 1123px;
+  --resume-page-padding-top: 60px;
+  --resume-page-padding-horizontal: 60px;
+
+  /* Colour tokens */
+  --resume-color-body: #384347;
+  --resume-color-accent: #1e90ff;
+  --resume-color-divider: #ccc;
+  --resume-color-divider-dashed: #a9a9a9;
+  --resume-color-continuation: #aaa;
+
+  /* Font */
+  --resume-font-body: 'Inter', Arial, sans-serif;
+
+  /* Sizes */
+  --resume-size-name: 38px;
+  --resume-size-section: 14px;
+  --resume-size-item: 18px;
+  --resume-size-bullet: 13px;
+
+  /* Spacing */
+  --resume-space-section: 0;
+  --resume-space-item: 0;
+  --resume-space-bullet: 0;
+}
+
+/* ── 1. Page shell ─────────────────────────────────────────────────────────── */
+
+@page { size: A4; margin: 0; }
+
+* { box-sizing: border-box; }
+
+.resumePage {
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  background: white;
+  padding: var(--resume-page-padding-top) var(--resume-page-padding-horizontal) 0;
+  margin: 0 auto;
+  page-break-after: always;
+}
+
+.resumePage:last-child {
+  page-break-after: auto;
+}
+
+.resumeBackground {
+  width: 100%;
+  min-height: 100%;
+  background: white;
+  font-family: var(--resume-font-body);
+  margin: auto;
+  overflow: visible;
+}
+
+/* ── 2. Header ─────────────────────────────────────────────────────────────── */
+
+.resumeBody {
+  --p-color: var(--resume-color-body);
+  color: black;
+  font-size: 14px;
+  /*
+   * Deterministic line boxes (rendering parity, plan §35):
+   * the editor shell injects Ant Design global styles (`body { line-height:
+   * 22px }` etc.) that cascade into the resume markup, making browser line
+   * boxes taller than the pristine Puppeteer document (which uses `normal`).
+   * Taller browser lines → taller measured blocks → the PDF wastes bottom
+   * space. Pinning an explicit line-height for every element removes the
+   * environment dependency so browser measurement == PDF rendering.
+   */
+  line-height: normal;
+}
+
+/* Pin line boxes for headings/text the resume uses (browser == PDF). */
+.resumeBody h1,
+.resumeBody h2,
+.resumeBody h3,
+.resumeBody h4,
+.resumeBody p,
+.resumeBody li,
+.resumeBody span,
+.resumeBody a,
+.resumeBody ul,
+.resumeBody div {
+  line-height: normal;
+}
+
+.resumeBody > h1,
+.resumeBody h2,
+.resumeBody h3 {
+  margin: 0;
+}
+
+.resumeHeader {
+  padding: 8px 16px;
+}
+
+.resumeHeader > h1 {
+  margin: 0 0 4px;
+  font-size: var(--resume-size-name);
+  text-transform: uppercase;
+}
+
+.resumeHeader .contactInfo {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 5px;
+}
+
+.contactInfo span {
+  padding-right: 12px;
+  color: var(--p-color);
+  font-weight: 700;
+}
+
+.contactInfo i {
+  margin-right: 4px;
+  color: var(--resume-color-accent);
+}
+
+/* ── 3. Layout grid ────────────────────────────────────────────────────────── */
+
+/*
+ * Two-column layout relationship (see `classicTemplate.regions` in
+ * templates.ts — same agreement must hold in the layout engine and the
+ * server renderer):
+ *   main    = remaining width (minmax(0, 1fr))
+ *   sidebar = 40% of the content width (minmax(0, 40%))
+ * The page's horizontal padding (60px) is subtracted by the grid container,
+ * so both columns always agree on available width.
+ */
+.resumeInfoBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 40%);
+  align-items: start;
+}
+
+/* ── 4. Section headings ───────────────────────────────────────────────────── */
+
+.sectionHeading {
+  padding: 8px 16px 0;
+}
+
+.sectionHeading > h2 {
+  border-bottom: 3px solid black;
+}
+
+/* Page-continuation heading (repeated when a section spans >1 page) */
+.sectionContinuationHeading {
+  padding: 8px 16px 0;
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+.sectionContinuationHeading > h2 {
+  border-bottom: 2px dashed var(--resume-color-continuation);
+}
+
+/* ── 5. Item objects ───────────────────────────────────────────────────────── */
+
+.linkField {
+  word-break: break-word;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  color: var(--p-color);
+}
+
+.linkField i { margin-right: 4px; }
+
+.linkField a { color: black; }
+
+.experienceItemIconContainer {
+  margin: 4px 0 0;
+  padding-right: 8px;
+  color: var(--p-color);
+}
+
+.experienceItemIconContainer span { padding-right: 8px; }
+
+.experienceItemIconContainer i,
+.resumeEducationSection i {
+  margin-right: 5px;
+  vertical-align: text-top;
+}
+
+.resumeFindMeOnlineSection .linkField {
+  padding: 4px 0 0 32px;
+  font-size: 13px;
+}
+
+.itemObject {
+  display: flex;
+  flex-direction: column;
+  padding: 0px 16px;
+}
+
+.itemObject .linkContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.itemObject h3 {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.itemObject h4 {
+  margin: 4px 0 0;
+  color: var(--resume-color-accent);
+  display: flex;
+  align-items: center;
+}
+
+.itemObject > ul {
+  margin: 3px 0 0;
+  padding-left: 17px;
+}
+
+.itemObject .certificateItemLink {
+  color: var(--resume-color-accent);
+  margin-left: auto;
+  margin-right: 5px;
+  height: 100%;
+  padding: 2px;
+}
+
+.itemObject .experienceItemLink { color: var(--resume-color-accent); }
+
+.itemObject li {
+  font-size: 13px;
+  color: var(--p-color);
+}
+
+/* ── 6. Section-specific ───────────────────────────────────────────────────── */
+
+.socialIconContainer {
+  display: flex;
+  align-items: center;
+}
+
+.socialIconContainer i {
+  color: var(--resume-color-accent);
+  margin: 10px 10px 10px 0;
+}
+
+.socialIconContainer p {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.itemSeperator {
+  display: block;
+  height: 1px;
+  border-bottom: 1px dashed var(--resume-color-divider);
+  margin: 0 16px;
+}
+
+.skillContainer {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 10px;
+}
+
+.skillContainer > span {
+  color: var(--p-color);
+  font-weight: 700;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--resume-color-divider-dashed);
+}
+
+.resumeEducationSection > .itemObject {
+  flex-direction: row;
+  justify-content: space-between;
+  color: var(--p-color);
+}
+
+.educationItemGpa {
+  margin-left: 16px;
+  padding-left: 12px;
+  border-left: 1px solid var(--resume-color-divider);
+  min-width: fit-content;
+}
+
+.educationItemGpa > p {
+  font-size: 11px;
+  font-weight: 400;
+  text-align: center;
+}
+
+.educationItemGpa .score {
+  color: var(--resume-color-accent);
+  font-weight: 700;
+}
+
+.resumeTrainingCoursesSection p,
+.resumeAchievementsSection p {
+  margin: 0;
+  padding-top: 4px;
+  color: var(--p-color);
+}
+
+/* ── 7. Page continuation ──────────────────────────────────────────────────── */
+
+/*
+ * Each rendered page gets its own .resumePage wrapper.
+ * The page-break is on the wrapper, so Puppeteer and the browser
+ * both get identical page separation.
+ */
+.resumeItemFragment {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.itemObject,
+.resumeHeader,
+.sectionHeading {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* ── 8. Print colours ──────────────────────────────────────────────────────── */
+
+* {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}

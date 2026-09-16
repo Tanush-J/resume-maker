@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+    <!--
+      Inter (local copy, variable 100–900): identical to the vendored file
+      the server uses for PDF rendering (server/assets/fonts/). Using local
+      assets in both browser and Puppeteer guarantees the same font metrics,
+      which is required for measurement → pagination parity.
+    -->
+    <link rel="stylesheet" href="/fonts/inter.css" />
+    <!--
+      Font Awesome 6.5.1 (local copy): identical to the vendored file the
+      server uses for PDF rendering (server/assets/fontawesome/). Using the
+      same CSS + WOFF2 files in both browser and Puppeteer ensures every icon
+      renders identically — no CDN, no version mismatch, no missing glyphs.
+    -->
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
