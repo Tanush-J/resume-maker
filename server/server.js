@@ -8,8 +8,9 @@ const { getTemplateRenderer } = require('./templates/registry');
 const { validateResume, validateLayoutPlan, validateLimits } = require('./validation');
 const { getEmbeddedFontCss, validateFontAssets } = require('./fontAssets');
 
-// Ensure at least the classic template is registered (side-effect import).
+// Ensure templates are registered (side-effect imports).
 require('./templates/classic');
+require('./templates/professional');
 
 // §19 — fail fast if required font assets are missing.
 validateFontAssets();

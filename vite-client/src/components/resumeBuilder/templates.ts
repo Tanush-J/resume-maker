@@ -15,6 +15,14 @@ export interface ResumeTemplateDefinition {
     id: string;
     flow: 'vertical' | 'grid' | 'freeform';
   }>;
+  /**
+   * Placeholder metadata for the dashboard / template picker. Real rendered
+   * thumbnails are intentionally out of scope — a card shows the name.
+   */
+  preview?: {
+    type: 'placeholder';
+    label?: string;
+  };
 }
 
 // ─── Editor callbacks passed from BuildResume → adapter ──────────────────────
@@ -38,6 +46,17 @@ export interface TemplateAdapterCallbacks {
  */
 export interface ResumeTemplateAdapter {
   readonly definition: ResumeTemplateDefinition;
+
+  /**
+   * Build the header layout block for the template. The header is
+   * template-owned (Classic = left-aligned contact row; Professional =
+   * centered name + title). Measured by `MeasuredResumePages` via
+   * `[data-layout-block="header"]` and rendered on page 0.
+   */
+  createHeaderBlock(
+    resume: ResumeDocument,
+    callbacks: TemplateAdapterCallbacks,
+  ): LayoutBlock<ReactNode>;
 
   /**
    * Convert a resume document into a list of layout regions ready for
@@ -66,6 +85,7 @@ export const classicTemplate: ResumeTemplateDefinition = {
   version: 1,
   name: 'Classic Resume',
   supportedSections: [
+    'summary',
     'experience',
     'projects',
     'skills',
@@ -74,6 +94,7 @@ export const classicTemplate: ResumeTemplateDefinition = {
     'trainingCourses',
     'achievements',
   ],
+  preview: { type: 'placeholder', label: 'Classic Resume' },
   page: {
     width: 794,
     height: 1123,
@@ -82,6 +103,33 @@ export const classicTemplate: ResumeTemplateDefinition = {
   regions: [
     { id: 'main', flow: 'vertical' },
     { id: 'sidebar', flow: 'vertical' },
+  ],
+};
+
+// ─── Professional template definition ────────────────────────────────────────
+
+export const professionalTemplate: ResumeTemplateDefinition = {
+  id: 'professional',
+  version: 1,
+  name: 'Professional',
+  supportedSections: [
+    'summary',
+    'experience',
+    'projects',
+    'skills',
+    'social',
+    'education',
+    'trainingCourses',
+    'achievements',
+  ],
+  preview: { type: 'placeholder', label: 'Professional' },
+  page: {
+    width: 794,
+    height: 1123,
+    padding: { top: 60, right: 60, bottom: 0, left: 60 },
+  },
+  regions: [
+    { id: 'main', flow: 'vertical' },
   ],
 };
 
@@ -101,3 +149,15 @@ export const getTemplateAdapter = (templateId: string): ResumeTemplateAdapter =>
   }
   return adapter;
 };
+
+/** Non-throwing lookup — UI can show a useful error instead of crashing. */
+export const getTemplateAdapterSafe = (templateId: string): ResumeTemplateAdapter | null =>
+  adapterRegistry[templateId] ?? null;
+
+/** Enumerate all registered adapters (dashboard + picker + renderer). */
+export const listTemplateAdapters = (): ResumeTemplateAdapter[] =>
+  Object.values(adapterRegistry);
+
+/** Enumerate all registered template definitions. */
+export const listTemplates = (): ResumeTemplateDefinition[] =>
+  Object.values(adapterRegistry).map((adapter) => adapter.definition);

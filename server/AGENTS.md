@@ -24,20 +24,22 @@ Express + Puppeteer + firebase-admin. The server's only job is generating **A4 P
 | `server.js` | Express app; auth middleware; PDF endpoint; Puppeteer browser reuse (`getBrowser`), 30s render timeout, SSRF guard (localhost + `data:` URLs allowed, all else blocked); graceful shutdown |
 | `firebase.js` | firebase-admin init from env vars (`FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY`); fails fast at startup |
 | `validation.js` | `validateResume`, `validateLayoutPlan`, `validateLimits`, `validateUrl` — used by the PDF route before rendering |
-| `templates/registry.js` | Server template registry — `registerTemplateRenderer`, `getTemplateRenderer(id, version)`. Classic self-registers on import. |
-| `templates/classic.js` | Classic renderer (`render: (resume, layoutPlan) → { html, css }`); reads `classic.css` at load; two render paths (below) |
-| `templates/classic.css` | Shared canonical resume styles — **do not fork this**; single source of truth with `vite-client`; contains design tokens in `:root` |
+| `templates/registry.js` | Server template registry — `registerTemplateRenderer`, `getTemplateRenderer(id, version)`, `listTemplateRenderers`. Classic and Professional self-register on import. |
+| `templates/classic.js` | Classic renderer (`render: (resume, layoutPlan) → { html, css }`); reads `classic.css` at load; plan-driven + legacy fallback paths |
+| `templates/classic.css` | Canonical resume styles for Classic (single source of truth with `vite-client`) |
+| `templates/professional.js` | Professional renderer (single-column, centered header); reads `professional.css` at load |
+| `templates/professional.css` | Canonical resume styles for Professional (single source of truth with `vite-client`) |
 | `assets/fontawesome/` | Vendored FontAwesome 6.5.1 CSS + webfonts (no external CDN in the PDF path) |
 | `assets/fonts/` | Vendored Inter variable font (`inter.css` + `inter-latin.woff2`) so Puppeteer measures the same font as the client |
 | `fontAssets.js` | Embedded font-asset loader: reads registered font CSS, resolves local `url(...)` to `data:` URLs, caches result; `validateFontAssets()` for startup fail-fast |
 | `test/pdfFonts.test.js` | Regression tests (plan §20–22): font validation, embedded CSS verification, E2E Puppeteer font-loading + icon rendering + zero-network-requests |
+| `test/templates.test.js` | Regression tests: registry enumeration, unknown template rejection, Classic & Professional HTML generation |
 
-## Rendering (templates/classic.js)
+## Rendering
 
-- **Plan-driven path** (used by the client, which always sends a `layoutPlan`): renders blocks per page exactly as measured/laid out on the frontend (block ids match the client's semantic blocks: `experience-heading`, `${itemId}-head`, `${itemId}-bullet-N`, `social-N`, `education-N`, etc.). Page constants `794×1123px` **must match** `classicTemplate.page` in `vite-client/src/components/resumeBuilder/templates.ts`.
+- **Plan-driven path** (used by the client, which always sends a `layoutPlan`): renders blocks per page exactly as measured/laid out on the frontend (block ids match the client's semantic blocks: `summary-heading`, `summary-N`, `experience-heading`, `${itemId}-head`, `${itemId}-bullet-N`, `social-N`, `education-N`, etc.). Page constants `794×1123px` **must match** template definitions in `vite-client/src/components/resumeBuilder/templates.ts`.
 - **Continuation headings** are resolved from explicit `block.continuationMetadata.title` serialized in the layout plan — never inferred by string-sniffing block ids (legacy id sniffing kept only as a transitional fallback).
-- **Legacy fallback path** (no `layoutPlan`): estimation-based pagination (`buildMainFragments`/`paginateFragments`) is isolated in `renderLegacyFallback()` — labelled legacy compatibility, not a competing layout engine. Known limitation (retained): sidebar only renders on page 0 in this fallback.
-- Only `classic` template v1 is supported by the registry — adding a template requires changes here **and** on the client.
+- **Supported templates in registry**: `classic` v1 and `professional` v1. Adding a template requires changes here **and** on the client.
 
 ## Dead Files — Do Not Touch / Reference
 

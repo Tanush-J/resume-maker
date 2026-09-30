@@ -27,16 +27,23 @@ Both apps require `npm install` from their respective directories on first setup
 
 ## Shared CSS Contract
 
-`vite-client/src/components/resumeBuilder/classic.css` is the **single source of truth** for all visual resume styles. The server reads and inlines this file at runtime for PDF rendering. Do not duplicate resume visual styles elsewhere; edit them only in `classic.css`.
+Each template has its own canonical stylesheet that serves as the **single source of truth** for visual styles:
+- Classic: `vite-client/src/components/resumeBuilder/classic.css` ⇄ `server/templates/classic.css`
+- Professional: `vite-client/src/components/resumeBuilder/professional.css` ⇄ `server/templates/professional.css`
+
+The server inlines these files at runtime for PDF rendering. Keep the client and server copies byte-identical.
 
 ## Key Architecture (Frontend)
 
-The resume builder uses a **template-adapter pattern**:
+The resume builder uses a **multi-resume, multi-template adapter pattern**:
 
-1. `ResumeContent` data is passed to an adapter (`classicAdapter.tsx`)
-2. Adapter produces layout regions (list of blocks routed to `main`/`sidebar` columns)
-3. `MeasuredResumePages` renders a hidden measurement layer, measures each block's actual height, then runs `paginateLayout` to split blocks across A4 pages
-4. A `SerializedLayoutPlan` is sent to the server, which renders an identical HTML layout in Puppeteer and returns a PDF blob
+1. Routes: `/` (Dashboard — lists saved resumes, creates new resumes with selected template) and `/resumes/:resumeId/edit` (Resume Builder).
+2. `ResumeContent` is portable across templates: templates decide presentation, but do not own or mutate content.
+3. Templates registered in `templates.ts` (`classicTemplate`, `professionalTemplate`).
+4. Template adapters (`classicAdapter.tsx`, `professionalAdapter.tsx`) produce layout blocks and render JSX.
+5. `MeasuredResumePages` measures DOM block heights and runs `paginateLayout` to split content across A4 pages.
+6. A `SerializedLayoutPlan` carrying `templateId` + `templateVersion` is sent to the server, which renders an identical HTML layout in Puppeteer.
+7. Builder supports "Change Template" — switches template identity while preserving 100% of resume content and invalidating stale layout plans.
 
 See `vite-client/AGENTS.md` for file-level details.
 
@@ -46,10 +53,10 @@ Single-purpose Express server: PDF rendering via Puppeteer.
 
 - **Endpoint**: `POST /api/resumes/:resumeId/pdf` — Bearer JWT auth, returns A4 PDF
 - **Health check**: `GET /health`
-- The client sends a measured `layoutPlan`; the server renders exactly those blocks (it does **not** decide pagination). `server/templates/classic.js` (reads `classic.css` via `fs.readFileSync`) is the `classic` v1 renderer, registered in `server/templates/registry.js`.
+- The client sends a measured `layoutPlan`; the server renders exactly those blocks (it does **not** decide pagination).
+- `server/templates/registry.js` maps `(templateId, templateVersion)` → renderer. Registered templates: `classic` v1 (`templates/classic.js`), `professional` v1 (`templates/professional.js`).
 - Input validation (`server/validation.js`): resume shape, layout-plan shape, template/version match, URL schemes (http/https only), size limits → `422`.
 - Vendored local assets: FontAwesome 6.5.1 (`server/assets/fontawesome/`) + Inter font (`server/assets/fonts/`) — the PDF path has no external CDN dependency. `server/fontAssets.js` embeds fonts as `data:` URLs at startup (no HTTP fetch for fonts); Puppeteer's SSRF guard continues to block all non-localhost/non-data network requests. The browser uses byte-identical copies under `vite-client/public/fontawesome/` and `vite-client/public/fonts/` (loaded from `index.html`) so measurement and PDF share the same font/icon metrics.
-- Supports only `classic` template v1; adding a new template requires changes in both frontend (`vite-client/.../templates.ts` + new adapter module) and backend (`server/templates/registry.js` + new renderer).
 
 See `server/AGENTS.md` for details.
 

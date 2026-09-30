@@ -32,6 +32,7 @@ const toFlatContent = (content) => {
     headerSection: content.header
       ? { ...content.header }
       : { name: '', contact: '', email: '', link: '', location: '' },
+    summarySection: [],
     experienceSection: [],
     projectsSection: [],
     skillsSection: [],
@@ -42,6 +43,9 @@ const toFlatContent = (content) => {
   };
 
   const byId = (id) => content.sections.find((section) => section.id === id);
+
+  const summary = byId('summary');
+  if (summary) flat.summarySection = summary.items ?? [];
 
   const experience = byId('experience');
   if (experience) flat.experienceSection = experience.items ?? [];
@@ -172,7 +176,7 @@ const section = (visible, className, title, body, sectionId) => visible
 const renderPlacedSections = (resume, regionId, sections) => {
   const placements = resume.configuration?.placements;
   const legacyVisibility = resume.configuration?.sectionVisibility || {};
-  const defaultRegion = (sectionId) => ['experience', 'projects'].includes(sectionId) ? 'main' : 'sidebar';
+  const defaultRegion = (sectionId) => ['summary', 'experience', 'projects'].includes(sectionId) ? 'main' : 'sidebar';
   const placementFor = (sectionId) => placements?.find((item) => item.sectionId === sectionId);
 
   return sections
@@ -218,20 +222,35 @@ const buildMainFragments = (resume) => {
   const isSectionVisible = (id) => placements.find((p) => p.sectionId === id)?.visible ?? legacyVisibility[id] ?? true;
   const sectionInRegion = (id) => {
     const p = placements.find((pl) => pl.sectionId === id);
-    return p ? p.regionId : (['experience', 'projects'].includes(id) ? 'main' : 'sidebar');
+    return p ? p.regionId : (['summary', 'experience', 'projects'].includes(id) ? 'main' : 'sidebar');
   };
   const sectionOrder = (id) => placements.find((p) => p.sectionId === id)?.order ?? 999;
 
-  const mainSections = ['experience', 'projects']
+  const mainSections = ['summary', 'experience', 'projects']
     .filter((id) => isSectionVisible(id) && sectionInRegion(id) === 'main')
     .sort((a, b) => sectionOrder(a) - sectionOrder(b));
 
   const fragments = [];
 
   for (const sectionId of mainSections) {
-    const continuationHeadingHtml = sectionId === 'experience'
+    const continuationHeadingHtml = sectionId === 'summary'
+      ? `<div class="sectionContinuationHeading"><h2>Summary (continued)</h2></div>`
+      : sectionId === 'experience'
       ? `<div class="sectionContinuationHeading"><h2>Experience (continued)</h2></div>`
       : `<div class="sectionContinuationHeading"><h2>Projects (continued)</h2></div>`;
+
+    if (sectionId === 'summary') {
+      fragments.push({ html: `<div class="resumeSummarySection"><div class="sectionHeading"><h2>Summary</h2></div></div>`, height: HEADING_H, sectionId, continuationHeadingHtml });
+      for (const item of content.summarySection) {
+        if (!item.text) continue;
+        fragments.push({
+          html: `<div class="resumeSummarySection"><div class="itemObject"><p>${escapeHtml(item.text)}</p></div></div>`,
+          height: estimateBulletHeight(item.text),
+          sectionId,
+          continuationHeadingHtml,
+        });
+      }
+    }
 
     if (sectionId === 'experience') {
       fragments.push({ html: `<div class="resumeExperienceSection"><div class="sectionHeading"><h2>Experience</h2></div></div>`, height: HEADING_H, sectionId, continuationHeadingHtml });
@@ -331,6 +350,15 @@ const paginateFragments = (fragments, availableHeight) => {
 const buildBlockMap = (resume) => {
   const map = new Map();
   const content = toFlatContent(resume.content);
+
+  // ── Summary ──
+  if (content.summarySection) {
+    map.set('summary-heading', `<div class="resumeSummarySection"><div class="sectionHeading"><h2>Summary</h2></div></div>`);
+    content.summarySection.forEach((item, i) => {
+      if (!item.text) return;
+      map.set(`summary-${i}`, `<div class="resumeSummarySection"><div class="itemObject"><p>${escapeHtml(item.text)}</p></div></div>`);
+    });
+  }
 
   // ── Experience ──
   if (content.experienceSection) {

@@ -1,15 +1,23 @@
 /**
- * Classic Resume Template Adapter
+ * Professional Resume Template Adapter
  *
- * Owns:
- *  - How ResumeDocument content is mapped to layout nodes (section structure,
- *    bullet-level splitting, continuation headings).
- *  - How a paginated page is rendered as React JSX.
+ * A centered-header, single-column template inspired by the reference
+ * screenshot. Owns:
+ *  - How ResumeDocument content maps to layout nodes for the `main` region.
+ *  - How paginated pages render as React JSX.
  *
- * BuildResume / mainResume never inspect any JSX produced here.
+ * Follows the same semantic block contract as Classic so the shared
+ * measurement → pagination → serialized layout plan pipeline is identical:
+ *   - section headings: `${sectionId}-heading` (keepWithNext)
+ *   - section container: splittable grouping with explicit continuationMetadata
+ *   - experience/project items: `${itemId}-head` (atomic) + `${itemId}-bullet-N` (flowing)
+ *   - skills: single atomic block (tag chips)
+ *   - social/education/training/achievements/summary: atomic item blocks
+ *
+ * Column values on sections are IGNORED — this template is single-column.
  */
 
-import './classic.css';
+import './professional.css';
 import { Fragment, type ReactNode } from 'react';
 import EditableLink from '../editableTags/editableLink/editableLink';
 import EditableText from '../editableTags/editableText/editableText';
@@ -28,7 +36,7 @@ import {
   type AchievementsSection,
 } from './resumeModel';
 import {
-  classicTemplate,
+  professionalTemplate,
   registerTemplateAdapter,
   type ResumeTemplateAdapter,
   type TemplateAdapterCallbacks,
@@ -40,6 +48,7 @@ const CONTINUATION: Record<string, ContinuationMetadata> = {
   summary: { sectionId: 'summary', title: 'Summary (continued)' },
   experience: { sectionId: 'experience', title: 'Experience (continued)' },
   projects: { sectionId: 'projects', title: 'Projects (continued)' },
+  skills: { sectionId: 'skills', title: 'Skills (continued)' },
   social: { sectionId: 'social', title: 'Find Me Online (continued)' },
   education: { sectionId: 'education', title: 'Education (continued)' },
   trainingCourses: { sectionId: 'trainingCourses', title: 'Training / Courses (continued)' },
@@ -48,15 +57,6 @@ const CONTINUATION: Record<string, ContinuationMetadata> = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/**
- * Build a layout block.
- *
- * Semantic model:
- *  - `explicitChildren` + `allowSplit` → transparent grouping container whose
- *    children flow across pages (sections, experience/project items).
- *  - `explicitChildren` (no `allowSplit`) → atomic container kept on one page.
- *  - no children → leaf content node (measured/paginated as one unit).
- */
 const makeBlock = (
   id: string,
   regionId: string,
@@ -80,12 +80,6 @@ const makeBlock = (
   allowSplit,
 });
 
-/**
- * A section container: transparent grouping carrying the section's explicit
- * continuation metadata, so a page break inside it emits exactly one
- * continuation heading per page. `continuation` is the React node rendered
- * at the top of the page following the break.
- */
 const makeSectionContainer = (
   id: string,
   regionId: string,
@@ -95,26 +89,21 @@ const makeSectionContainer = (
   regionId,
   null,
   children,
-  <div className="sectionContinuationHeading"><h2>{CONTINUATION[id].title}</h2></div>,
+  <div className="pSectionContinuationHeading"><h2>{CONTINUATION[id].title}</h2></div>,
   CONTINUATION[id],
   undefined,
   true,
 );
 
-/**
- * A section heading leaf. `keepWithNext` prevents the heading from being left
- * alone at the bottom of a page when its first item lands on the next page.
- */
 const makeSectionHeading = (
   id: string,
   regionId: string,
-  className: string,
   title: string,
 ): LayoutBlock<ReactNode> => makeBlock(
   `${id}-heading`,
   regionId,
-  <div className={className}>
-    <div className="sectionHeading"><h2>{title}</h2></div>
+  <div className="pSectionHeadingWrapper">
+    <div className="pSectionHeading"><h2>{title}</h2></div>
   </div>,
   [],
   undefined,
@@ -122,7 +111,22 @@ const makeSectionHeading = (
   true,
 );
 
-// ─── Render helpers ───────────────────────────────────────────────────────────
+/** Adapter-owned default section order (single column). */
+const PROFESSIONAL_SECTION_ORDER: Array<{
+  section: 'summary' | 'experience' | 'projects' | 'skills' | 'social' | 'education' | 'trainingCourses' | 'achievements';
+  title: string;
+}> = [
+  { section: 'summary', title: 'Summary' },
+  { section: 'experience', title: 'Experience' },
+  { section: 'projects', title: 'Projects' },
+  { section: 'skills', title: 'Skills' },
+  { section: 'social', title: 'Find Me Online' },
+  { section: 'education', title: 'Education' },
+  { section: 'trainingCourses', title: 'Training / Courses' },
+  { section: 'achievements', title: 'Achievements' },
+];
+
+// ─── Render helpers ──────────────────────────────────────────────────────────
 
 const renderLayoutBlock = (item: LayoutBlock<ReactNode>): ReactNode => {
   const children = item.children ?? item.parts;
@@ -132,10 +136,10 @@ const renderLayoutBlock = (item: LayoutBlock<ReactNode>): ReactNode => {
   return <div className="layoutBlock" data-layout-block={item.id}>{item.content}</div>;
 };
 
-// ─── Classic Adapter implementation ──────────────────────────────────────────
+// ─── Professional Adapter implementation ────────────────────────────────────
 
-const classicAdapterImpl: ResumeTemplateAdapter = {
-  definition: classicTemplate,
+const professionalAdapterImpl: ResumeTemplateAdapter = {
+  definition: professionalTemplate,
 
   createHeaderBlock(
     resume: ResumeDocument,
@@ -144,22 +148,37 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
     const { onChange, onSelectEditor } = callbacks;
     const header = resume.content.header;
 
+    // Derive a headline fallback: header.title → first visible experience
+    // designation → empty.
+    const experienceSection = sectionById(resume.content.sections, 'experience') as ExperienceSection | undefined;
+    const fallbackTitle = experienceSection?.items?.find((item) => item.designation)?.designation ?? '';
+    const title = header.title || fallbackTitle;
+
     return {
       id: 'header',
       regionId: 'header',
       content: (
-        <div className="resumeHeader" onClick={() => onSelectEditor?.({ type: 'header' })}>
+        <div className="professionalTemplate pHeader" onClick={() => onSelectEditor?.({ type: 'header' })}>
           <EditableText
             tag="h1"
             value={header.name}
             onChange={(value) => onChange('header.name', value)}
             editable
           />
-          <div className="contactInfo">
-            <span><i className="fa-solid fa-phone fa-xs" />{header.contact}</span>
-            <span><i className="fa-solid fa-at fa-xs" />{header.email}</span>
-            <span><i className="fa-brands fa-linkedin" />{header.link}</span>
+          {title && (
+            <EditableText
+              tag="p"
+              className="pHeaderTitle"
+              value={title}
+              onChange={(value) => onChange('header.title', value)}
+              editable
+            />
+          )}
+          <div className="pHeaderContact">
             <span><i className="fa-solid fa-location-dot fa-xs" />{header.location}</span>
+            <span><i className="fa-solid fa-at fa-xs" />{header.email}</span>
+            <span><i className="fa-solid fa-phone fa-xs" />{header.contact}</span>
+            <span><i className="fa-solid fa-link fa-xs" />{header.link}</span>
           </div>
         </div>
       ),
@@ -175,23 +194,25 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
   ): LayoutRegion<ReactNode>[] {
     const { content } = resume;
     const { onChange, onSelectEditor } = callbacks;
+    const regionId = 'main';
 
-    // ── Placement helpers (derived from the generic sections array) ──
     const sectionFor = (id: Parameters<typeof sectionById>[1]) => sectionById(content.sections, id);
     const isVisible = (id: Parameters<typeof sectionById>[1]) => sectionFor(id)?.enabled ?? false;
+    const buildBlocksPart = <T,>(sectionId: Parameters<typeof sectionById>[1], build: (section: T) => LayoutBlock<ReactNode>[]): LayoutBlock<ReactNode>[] =>
+      isVisible(sectionId) ? build(sectionFor(sectionId) as T) : [];
 
     // ── Summary blocks ──
     const summarySection = sectionFor('summary') as SummarySection | undefined;
     const summaryParts: LayoutBlock<ReactNode>[] = [
-      makeSectionHeading('summary', 'main', 'resumeSummarySection', 'Summary'),
+      makeSectionHeading('summary', regionId, 'Summary'),
       ...(summarySection?.items ?? []).flatMap((summary, index) => {
         const sectionIndex = content.sections.indexOf(summarySection!);
         return summary.text
           ? [makeBlock(
               `summary-${index}`,
-              'main',
-              <div className="resumeSummarySection">
-                <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'summary', id: summary.id })}>
+              regionId,
+              <div className="pSummarySection">
+                <div className="pItem" onClick={() => onSelectEditor?.({ type: 'summary', id: summary.id })}>
                   <EditableText
                     onChange={(value) => onChange(`sections.${sectionIndex}.items.${index}.text`, value)}
                     editable
@@ -208,29 +229,28 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
     // ── Experience blocks ──
     const experienceSection = sectionFor('experience') as ExperienceSection | undefined;
     const experienceParts: LayoutBlock<ReactNode>[] = [
-      makeSectionHeading('experience', 'main', 'resumeExperienceSection', 'Experience'),
+      makeSectionHeading('experience', regionId, 'Experience'),
       ...(experienceSection?.items ?? []).flatMap((experience, index) => {
         const sectionIndex = content.sections.indexOf(experienceSection!);
         const itemPath = `sections.${sectionIndex}.items.${index}`;
 
-        // Semantic item container: head (header + first bullet) is atomic;
-        // remaining bullets flow to subsequent pages if needed.
         const bullets = experience.description.length ? experience.description : [''];
         const head = makeBlock(
           `${experience.id}-head`,
-          'main',
-          <div className="resumeExperienceSection">
-            <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'experience', id: experience.id })}>
-              {experience.designation && <EditableText tag="h3" value={experience.designation} onChange={(value) => onChange(`${itemPath}.designation`, value)} editable />}
-              {experience.company && <EditableText tag="h4" value={experience.company} onChange={(value) => onChange(`${itemPath}.company`, value)} editable />}
-              <div className="experienceItemIconContainer">
-                <span>
-                  <i className="fa-solid fa-calendar-days" />
-                  <EditableText tag="span" value={experience.start} onChange={(value) => onChange(`${itemPath}.start`, value)} editable /> - <EditableText tag="span" value={experience.end} onChange={(value) => onChange(`${itemPath}.end`, value)} editable />&nbsp;
-                </span>
-                {experience.location && <span><i className="fa-solid fa-location-dot" /><EditableText tag="span" value={experience.location} onChange={(value) => onChange(`${itemPath}.location`, value)} editable /></span>}
-                {experience.link && <a className="experienceItemLink" target="_blank" href={experience.link} rel="noreferrer"><i className="fa-solid fa-link" />Link</a>}
+          regionId,
+          <div className="pExperienceSection">
+            <div className="pItem" onClick={() => onSelectEditor?.({ type: 'experience', id: experience.id })}>
+              <div className="pItemHeaderRow">
+                <div>
+                  {experience.designation && <EditableText tag="h3" value={experience.designation} onChange={(value) => onChange(`${itemPath}.designation`, value)} editable />}
+                  {experience.company && <EditableText tag="h4" value={experience.company} onChange={(value) => onChange(`${itemPath}.company`, value)} editable />}
+                </div>
+                <div className="pItemMeta">
+                  <span><i className="fa-solid fa-calendar-days" /><EditableText tag="span" value={experience.start} onChange={(value) => onChange(`${itemPath}.start`, value)} editable /> - <EditableText tag="span" value={experience.end} onChange={(value) => onChange(`${itemPath}.end`, value)} editable /></span>
+                  {experience.location && <span><i className="fa-solid fa-location-dot" /><EditableText tag="span" value={experience.location} onChange={(value) => onChange(`${itemPath}.location`, value)} editable /></span>}
+                </div>
               </div>
+              {experience.link && <a className="pItemLink" target="_blank" href={experience.link} rel="noreferrer"><i className="fa-solid fa-link" />Link</a>}
               <ul>
                 <EditableText
                   onChange={(value) => onChange(`${itemPath}.description.0`, value)}
@@ -246,9 +266,9 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
         const flowingBullets = bullets.slice(1).map((listItem, flowIndex) =>
           makeBlock(
             `${experience.id}-bullet-${flowIndex + 1}`,
-            'main',
-            <div className="resumeExperienceSection">
-              <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'experience', id: experience.id })}>
+            regionId,
+            <div className="pExperienceSection">
+              <div className="pItem" onClick={() => onSelectEditor?.({ type: 'experience', id: experience.id })}>
                 <ul>
                   <EditableText
                     onChange={(value) => onChange(`${itemPath}.description.${flowIndex + 1}`, value)}
@@ -262,11 +282,9 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
           ),
         );
 
-        // One item per container: header + bullet 0 stay together; extra
-        // bullets may overflow onto the next page.
         return [makeBlock(
           experience.id,
-          'main',
+          regionId,
           null,
           [head, ...flowingBullets],
           undefined,
@@ -280,7 +298,7 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
     // ── Project blocks ──
     const projectsSection = sectionFor('projects') as ProjectsSection | undefined;
     const projectParts: LayoutBlock<ReactNode>[] = [
-      makeSectionHeading('projects', 'main', 'resumeProjectsSection', 'Projects'),
+      makeSectionHeading('projects', regionId, 'Projects'),
       ...(projectsSection?.items ?? []).flatMap((project, index) => {
         if (!project.show) return [];
         const sectionIndex = content.sections.indexOf(projectsSection!);
@@ -289,15 +307,19 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
         const bullets = project.description.length ? project.description : [''];
         const head = makeBlock(
           `${project.id}-head`,
-          'main',
-          <div className="resumeProjectsSection">
-            <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'project', id: project.id })}>
-              <EditableText onChange={(value) => onChange(`${itemPath}.title`, value)} editable tag="h3" value={project.title} />
-              <div className="linkField">
-                <a target="_blank" href={project.link} rel="noreferrer">
-                  <i className="fa-solid fa-link fa-xs" />{project.link}
-                </a>
+          regionId,
+          <div className="pProjectsSection">
+            <div className="pItem" onClick={() => onSelectEditor?.({ type: 'project', id: project.id })}>
+              <div className="pItemHeaderRow">
+                <EditableText onChange={(value) => onChange(`${itemPath}.title`, value)} editable tag="h3" value={project.title} />
               </div>
+              {project.link && (
+                <div className="pLinkField">
+                  <a target="_blank" href={project.link} rel="noreferrer">
+                    <i className="fa-solid fa-link fa-xs" />{project.link}
+                  </a>
+                </div>
+              )}
               <ul>
                 <EditableText
                   onChange={(value) => onChange(`${itemPath}.description.0`, value)}
@@ -313,9 +335,9 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
         const flowingBullets = bullets.slice(1).map((listItem, flowIndex) =>
           makeBlock(
             `${project.id}-bullet-${flowIndex + 1}`,
-            'main',
-            <div className="resumeProjectsSection">
-              <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'project', id: project.id })}>
+            regionId,
+            <div className="pProjectsSection">
+              <div className="pItem" onClick={() => onSelectEditor?.({ type: 'project', id: project.id })}>
                 <ul>
                   <EditableText
                     onChange={(value) => onChange(`${itemPath}.description.${flowIndex + 1}`, value)}
@@ -331,7 +353,7 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
 
         return [makeBlock(
           project.id,
-          'main',
+          regionId,
           null,
           [head, ...flowingBullets],
           undefined,
@@ -342,77 +364,80 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
       }),
     ];
 
-    // ── Sidebar blocks ──
+    // ── Skills block (single atomic block of tag chips) ──
     const skillsSection = sectionFor('skills') as SkillsSection | undefined;
-    const skillsBlock = isVisible('skills')
-      ? makeBlock(
-          'skills',
-          'sidebar',
-          <div className="resumeSkillSection">
-            <div className="sectionHeading"><h2>Skills</h2></div>
-            <div className="itemObject skillContainer">
-              {(skillsSection?.items?.[0]?.tags ?? []).map((skill, index) => (
-                <span key={`skill-${index}`} onClick={() => onSelectEditor?.({ type: 'skill', index })}>
-                  <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(skillsSection!)}.items.0.tags.${index}`, value)} editable tag="span" value={skill} />
-                </span>
-              ))}
-            </div>
-          </div>,
-        )
-      : null;
+    const skillsParts: LayoutBlock<ReactNode>[] = buildBlocksPart<SkillsSection>('skills', () => [
+      makeSectionHeading('skills', regionId, 'Skills'),
+      makeBlock(
+        'skills',
+        regionId,
+        <div className="pSkillsSection">
+          <div className="pSkillChips">
+            {(skillsSection?.items?.[0]?.tags ?? []).map((skill, index) => (
+              <span key={`skill-${index}`} className="pSkillChip" onClick={() => onSelectEditor?.({ type: 'skill', index })}>
+                <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(skillsSection!)}.items.0.tags.${index}`, value)} editable tag="span" value={skill} />
+              </span>
+            ))}
+          </div>
+        </div>,
+      ),
+    ]);
 
-    // ── Sidebar sections (each item is its own atomic block so sections can
-    //    split at item boundaries; skills stays as one wrapping block) ──
+    // ── Social blocks ──
     const socialSection = sectionFor('social') as SocialSection | undefined;
     const socialParts: LayoutBlock<ReactNode>[] = [
-      makeSectionHeading('social', 'sidebar', 'resumeFindMeOnlineSection', 'Find Me Online'),
+      makeSectionHeading('social', regionId, 'Find Me Online'),
       ...(socialSection?.items ?? []).flatMap((social, index) =>
         social.name || social.link
           ? [makeBlock(
               `social-${index}`,
-              'sidebar',
-              <div className="resumeFindMeOnlineSection">
-                <div className="itemObject" key={social.id} onClick={() => onSelectEditor?.({ type: 'social', id: social.id })}>
-                  <div className="socialIconContainer">
+              regionId,
+              <div className="pSocialSection">
+                <div className="pItem" key={social.id} onClick={() => onSelectEditor?.({ type: 'social', id: social.id })}>
+                  <div className="pSocialRow">
                     <i className={social.icon} />
                     <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(socialSection!)}.items.${index}.name`, value)} editable tag="p" value={social.name} />
                   </div>
-                  <div className="linkField">
+                  <div className="pLinkField">
                     <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(socialSection!)}.items.${index}.link`, value)} editable tag="span" value={social.link} />
                   </div>
                 </div>
-                {index < (socialSection?.items?.length ?? 0) - 1 && <div className="itemSeperator" />}
+                {index < (socialSection?.items?.length ?? 0) - 1 && <div className="pItemSeparator" />}
               </div>,
             )]
           : [],
       ),
     ];
 
+    // ── Education blocks ──
     const educationSection = sectionFor('education') as EducationSection | undefined;
     const educationParts: LayoutBlock<ReactNode>[] = [
-      makeSectionHeading('education', 'sidebar', 'resumeEducationSection', 'Education'),
+      makeSectionHeading('education', regionId, 'Education'),
       ...(educationSection?.items ?? []).flatMap((education, index) =>
         education.show
           ? [makeBlock(
               `education-${index}`,
-              'sidebar',
-              <div className="resumeEducationSection">
-                <div className="itemObject" key={education.id} onClick={() => onSelectEditor?.({ type: 'education', id: education.id })}>
-                  <div>
-                    <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.degree`, value)} editable tag="h3" value={education.degree} />
-                    <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.location`, value)} editable tag="h4" value={education.location} />
-                    <span>
-                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.start`, value)} editable tag="span" value={education.start} /> - <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.end`, value)} editable tag="span" value={education.end} />
-                    </span>
-                  </div>
-                  <div className="educationItemGpa">
-                    <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.gpa.type`, value)} editable tag="p" value={education.gpa.type} />
+              regionId,
+              <div className="pEducationSection">
+                <div className="pItem" key={education.id} onClick={() => onSelectEditor?.({ type: 'education', id: education.id })}>
+                  <div className="pItemHeaderRow">
                     <div>
-                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.gpa.score`, value)} editable tag="span" value={education.gpa.score} className="score" />
+                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.degree`, value)} editable tag="h3" value={education.degree} />
+                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.location`, value)} editable tag="h4" value={education.location} />
+                    </div>
+                    <div className="pItemMeta">
+                      <span><EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.start`, value)} editable tag="span" value={education.start} /> - <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.end`, value)} editable tag="span" value={education.end} /></span>
+                    </div>
+                  </div>
+                  {education.gpa.type && (
+                    <div className="pEducationGpa">
+                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.gpa.type`, value)} editable tag="span" value={education.gpa.type} />
+                      <span>: </span>
+                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.gpa.score`, value)} editable tag="span" value={education.gpa.score} />
                       <span> / </span>
                       <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(educationSection!)}.items.${index}.gpa.outOf`, value)} editable tag="span" value={education.gpa.outOf} />
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>,
             )]
@@ -420,19 +445,20 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
       ),
     ];
 
+    // ── Training / Courses blocks ──
     const trainingCoursesSection = sectionFor('trainingCourses') as TrainingCoursesSection | undefined;
     const trainingParts: LayoutBlock<ReactNode>[] = [
-      makeSectionHeading('trainingCourses', 'sidebar', 'resumeTrainingCoursesSection', 'Training / Courses'),
+      makeSectionHeading('trainingCourses', regionId, 'Training / Courses'),
       ...(trainingCoursesSection?.items ?? []).flatMap((item, index) =>
         item.show
           ? [makeBlock(
               `trainingCourses-${index}`,
-              'sidebar',
-              <div className="resumeTrainingCoursesSection">
-                <div className="itemObject" key={item.id} onClick={() => onSelectEditor?.({ type: 'trainingCourse', id: item.id })}>
-                  <div className="linkContainer">
+              regionId,
+              <div className="pTrainingCoursesSection">
+                <div className="pItem" key={item.id} onClick={() => onSelectEditor?.({ type: 'trainingCourse', id: item.id })}>
+                  <div className="pLinkContainer">
                     <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(trainingCoursesSection!)}.items.${index}.title`, value)} tag="h4" editable value={item.title} />
-                    <EditableLink name="" className="certificateItemLink" href={item.link} editable>
+                    <EditableLink name="" className="pCertificateLink" href={item.link} editable>
                       <i className="fa-solid fa-link fa-base" />
                     </EditableLink>
                   </div>
@@ -444,18 +470,19 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
       ),
     ];
 
+    // ── Achievement blocks ──
     const achievementsSection = sectionFor('achievements') as AchievementsSection | undefined;
     const achievementParts: LayoutBlock<ReactNode>[] = [
-      makeSectionHeading('achievements', 'sidebar', 'resumeAchievementsSection', 'Achievements'),
+      makeSectionHeading('achievements', regionId, 'Achievements'),
       ...(achievementsSection?.items ?? []).map((achievement, index) =>
         makeBlock(
           `achievements-${index}`,
-          'sidebar',
-          <div className="resumeAchievementsSection">
-            <div className="itemObject" key={achievement.id} onClick={() => onSelectEditor?.({ type: 'achievement', id: achievement.id })}>
-              <div className="linkContainer">
+          regionId,
+          <div className="pAchievementsSection">
+            <div className="pItem" key={achievement.id} onClick={() => onSelectEditor?.({ type: 'achievement', id: achievement.id })}>
+              <div className="pLinkContainer">
                 <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(achievementsSection!)}.items.${index}.title`, value)} tag="h4" editable value={achievement.title} />
-                <EditableLink name="" className="certificateItemLink" href={achievement.link} editable>
+                <EditableLink name="" className="pCertificateLink" href={achievement.link} editable>
                   <i className="fa-solid fa-link fa-base" />
                 </EditableLink>
               </div>
@@ -466,56 +493,49 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
       ),
     ];
 
-    // ── Assemble: route each block to the correct region by column ──
-    const mainBlocks = content.sections
-      .filter((section) => section.enabled && section.column === 0)
-      .map((section) => {
-        if (section.id === 'summary') return makeSectionContainer('summary', 'main', summaryParts);
-        if (section.id === 'experience') return makeSectionContainer('experience', 'main', experienceParts);
-        if (section.id === 'projects') return makeSectionContainer('projects', 'main', projectParts);
-        return null;
-      })
-      .filter((b): b is LayoutBlock<ReactNode> => Boolean(b));
+    // ── Assemble in the adapter-owned default order (single `main` region) ──
+    const partsBySection: Record<string, LayoutBlock<ReactNode>[]> = {
+      summary: summaryParts,
+      experience: experienceParts,
+      projects: projectParts,
+      skills: skillsParts,
+      social: socialParts,
+      education: educationParts,
+      trainingCourses: trainingParts,
+      achievements: achievementParts,
+    };
 
-    const sidebarBlocks = content.sections
-      .filter((section) => section.enabled && section.column === 1)
-      .map((section) => {
-        if (section.id === 'skills') return skillsBlock;
-        if (section.id === 'social') return makeSectionContainer('social', 'sidebar', socialParts);
-        if (section.id === 'education') return makeSectionContainer('education', 'sidebar', educationParts);
-        if (section.id === 'trainingCourses') return makeSectionContainer('trainingCourses', 'sidebar', trainingParts);
-        if (section.id === 'achievements') return makeSectionContainer('achievements', 'sidebar', achievementParts);
-        return null;
-      })
-      .filter((b): b is LayoutBlock<ReactNode> => Boolean(b));
+    const mainBlocks = PROFESSIONAL_SECTION_ORDER
+      .filter(({ section }) => isVisible(section))
+      .map(({ section }) => {
+        const parts = partsBySection[section];
+        return makeSectionContainer(section, regionId, parts);
+      });
 
     return [
       { id: 'main', flow: 'vertical', blocks: mainBlocks },
-      { id: 'sidebar', flow: 'vertical', blocks: sidebarBlocks },
     ];
   },
 
   renderPage(page, headerBlock) {
     return (
-      <ResumePage page={classicTemplate.page}>
-        <div className="resumeBackground">
-          <div className="resumeBody">
+      <ResumePage page={professionalTemplate.page}>
+        <div className="professionalTemplate">
+          <div className="pResumeBody">
             {page.index === 0 && headerBlock && (
               <div className="layoutBlock" data-layout-block="header">
                 {headerBlock.content}
               </div>
             )}
-            <div className="resumeInfoBody">
-              {page.regions.map((region) => (
-                <div className="resumeBodyCol" key={region.id}>
-                  <ResumeRegion id={region.id}>
-                    {region.blocks.map((item) => (
-                      <Fragment key={item.id}>{renderLayoutBlock(item)}</Fragment>
-                    ))}
-                  </ResumeRegion>
-                </div>
-              ))}
-            </div>
+            {page.regions.map((region) => (
+              <div className="pRegion" key={region.id}>
+                <ResumeRegion id={region.id}>
+                  {region.blocks.map((item) => (
+                    <Fragment key={item.id}>{renderLayoutBlock(item)}</Fragment>
+                  ))}
+                </ResumeRegion>
+              </div>
+            ))}
           </div>
         </div>
       </ResumePage>
@@ -525,6 +545,6 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
 
 // ─── Self-register ────────────────────────────────────────────────────────────
 
-registerTemplateAdapter(classicAdapterImpl);
+registerTemplateAdapter(professionalAdapterImpl);
 
-export { classicAdapterImpl as classicAdapter };
+export { professionalAdapterImpl as professionalAdapter };

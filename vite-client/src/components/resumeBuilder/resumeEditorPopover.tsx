@@ -4,6 +4,7 @@ import { ArrowDownOutlined, ArrowUpOutlined, CloseOutlined, DeleteOutlined, Save
 import {
   sectionById,
   type ResumeDocument,
+  type SummaryItem,
   type ExperienceItem,
   type ProjectItem,
   type SkillItem,
@@ -15,6 +16,7 @@ import {
 
 type EditorSelection =
   | { type: 'header'; index?: number }
+  | { type: 'summary'; id: string }
   | { type: 'experience'; id: string }
   | { type: 'project'; id: string }
   | { type: 'skill'; index: number }
@@ -33,6 +35,7 @@ interface ResumeEditorPopoverProps {
 }
 
 const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteItem, onMoveItem }: ResumeEditorPopoverProps) => {
+  const summaryItems = (sectionById(resume.content.sections, 'summary')?.items ?? []) as SummaryItem[];
   const experienceItems = (sectionById(resume.content.sections, 'experience')?.items ?? []) as ExperienceItem[];
   const projectItems = (sectionById(resume.content.sections, 'projects')?.items ?? []) as ProjectItem[];
   const skillItems = (sectionById(resume.content.sections, 'skills')?.items ?? []) as SkillItem[];
@@ -41,6 +44,10 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
   const trainingCourseItems = (sectionById(resume.content.sections, 'trainingCourses')?.items ?? []) as TrainingCourseItem[];
   const achievementItems = (sectionById(resume.content.sections, 'achievements')?.items ?? []) as AchievementItem[];
 
+  const summaryIndex = selection.type === 'summary' && selection.id
+    ? summaryItems.findIndex((item) => item.id === selection.id)
+    : 0;
+  const summary = summaryItems[summaryIndex];
   const experienceIndex = selection.type === 'experience' && selection.id
     ? experienceItems.findIndex((item) => item.id === selection.id)
     : 0;
@@ -71,6 +78,7 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
   // Total items in the section (skills count = number of tags).
   const getCurrentItemCount = (): number => {
     switch (selection.type) {
+      case 'summary': return summaryItems.length;
       case 'experience': return experienceItems.length;
       case 'project': return projectItems.length;
       case 'skill': return skillItems[0]?.tags.length ?? 0;
@@ -84,6 +92,7 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
 
   const getCurrentItemIndex = (): number => {
     switch (selection.type) {
+      case 'summary': return summaryIndex;
       case 'experience': return experienceIndex;
       case 'project': return projectIndex;
       case 'skill': return skillIndex;
@@ -106,11 +115,14 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
     if (selection.type === 'header') {
       form.setFieldsValue({
         name: resume.content.header.name,
+        title: resume.content.header.title ?? '',
         contact: resume.content.header.contact,
         email: resume.content.header.email,
         link: resume.content.header.link,
         location: resume.content.header.location,
       });
+    } else if (selection.type === 'summary' && summary) {
+      form.setFieldsValue({ text: summary.text });
     } else if (selection.type === 'experience' && experience) {
       form.setFieldsValue({
         designation: experience.designation,
@@ -145,11 +157,12 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
     } else if (selection.type === 'achievement' && achievement) {
       form.setFieldsValue({ title: achievement.title, link: achievement.link, description: achievement.description });
     }
-  }, [resume, selection, experience, project, skill, social, education, trainingCourse, achievement, form]);
+  }, [resume, selection, summary, experience, project, skill, social, education, trainingCourse, achievement, form]);
 
   const getSectionTitle = () => {
     switch (selection.type) {
       case 'header': return 'Edit header';
+      case 'summary': return 'Edit summary';
       case 'experience': return 'Edit experience';
       case 'project': return 'Edit project';
       case 'skill': return 'Edit skill';
@@ -163,6 +176,7 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
   const getPrefix = () => {
     switch (selection.type) {
       case 'header': return 'header';
+      case 'summary': return `sections.${resume.content.sections.findIndex((s) => s.id === 'summary')}.items.${summaryIndex}`;
       case 'experience': return `sections.${resume.content.sections.findIndex((s) => s.id === 'experience')}.items.${experienceIndex}`;
       case 'project': return `sections.${resume.content.sections.findIndex((s) => s.id === 'projects')}.items.${projectIndex}`;
       case 'skill': return `sections.${resume.content.sections.findIndex((s) => s.id === 'skills')}.items.0.tags.${skillIndex}`;
@@ -200,6 +214,7 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
   };
 
   if (
+    (selection.type === 'summary' && !summary) ||
     (selection.type === 'experience' && !experience) ||
     (selection.type === 'project' && !project) ||
     (selection.type === 'skill' && !skill) ||
@@ -233,6 +248,9 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
             <Form.Item label="Name" name="name">
               <Input />
             </Form.Item>
+            <Form.Item label="Job title" name="title">
+              <Input placeholder="e.g. Full Stack Developer" />
+            </Form.Item>
             <Form.Item label="Phone" name="contact">
               <Input />
             </Form.Item>
@@ -246,6 +264,12 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
               <Input />
             </Form.Item>
           </>
+        )}
+
+        {selection.type === 'summary' && (
+          <Form.Item label="Summary" name="text">
+            <Input.TextArea rows={6} placeholder="Professional summary..." />
+          </Form.Item>
         )}
 
         {selection.type === 'experience' && (

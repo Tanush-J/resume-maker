@@ -15,7 +15,6 @@
 
 /* ── Shared semantic styles (same file used by server/Puppeteer) ─────────── */
 /* Source of truth: server/templates/classic.css — keep in sync manually or via a build step. */
-@import url('./classic.css');
 
 /* ── Editor page scroll container ──────────────────────────────────── */
 

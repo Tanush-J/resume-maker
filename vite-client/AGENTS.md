@@ -9,19 +9,23 @@ React 19 + TypeScript 5.8 + Vite 7 · Redux Toolkit + react-redux · react-route
 | File | Purpose |
 |---|---|
 | `src/main.tsx` | React entry; mounts `<App/>` inside Redux `<Provider>` inside antd `<ConfigProvider>` + `<App>` (context-aware `message`/`notification`/`modal`) |
-| `src/App.tsx` | Routing shell (`/`, `/signin`, `/signup`); restores auth from localStorage on mount |
+| `src/App.tsx` | Routing shell (`/` Dashboard, `/resumes/:resumeId/edit` BuildResume, `/signin`, `/signup`); restores auth from localStorage on mount |
 | `src/firebase.ts` | Firebase init; hardcoded config (`projectId: resumemaker-5782f`); exports `auth`, `db` |
 | `src/theme.ts` | antd `ThemeConfig` (blue accent `#1e90ff`, Inter font family, button/modal card radii) |
-| `src/components/resumeBuilder/resumeModel.ts` | Domain types + `defaultResumeContent` / `createDefaultResume` factory; `SECTION_CONTENT_FIELDS`, `createEmptySectionItem` (no React/JSX here) |
-| `src/components/resumeBuilder/templates.ts` | Template registry, adapter interface, `classicTemplate` definition (A4 794×1123pt) |
+| `src/pages/home/dashboard.tsx` | Dashboard landing page — lists user resumes, opens builder, template-picker modal for creating new resumes |
+| `src/components/resumeBuilder/resumeModel.ts` | Domain types + `defaultResumeContent` / `createDefaultResume` factory; `SECTION_RECORDS`, `createEmptySectionItem` (no React/JSX here); supports `summary` and `header.title` |
+| `src/components/resumeBuilder/templates.ts` | Template registry, adapter interface (`createHeaderBlock`, `createLayoutRegions`, `renderPage`), `classicTemplate`, `professionalTemplate`, `listTemplates` |
 | `src/components/resumeBuilder/layout.ts` | Pure pagination engine (`paginateLayout`, `serializeLayoutPlan`) — framework-agnostic; `ContinuationMetadata` + semantic containers (`allowSplit`, `keepWithNext`) |
 | `src/components/resumeBuilder/layoutComponents.tsx` | `MeasuredResumePages` — DOM measurement + paginated rendering |
-| `src/components/resumeBuilder/classicAdapter.tsx` | Classic template adapter; self-registers via `registerTemplateAdapter`; imports `classic.css`; builds semantic blocks (item `-head` + flowing `-bullet-N`, section containers w/ continuation metadata) |
-| `src/components/resumeBuilder/mainResume.tsx` | Editor orchestrator; resolves adapter by `templateId`; stays thin |
-| `src/components/resumeBuilder/buildResume.tsx` | Page container; owns resume state; PDF generation + preview modal; section controls (visibility/region/add/reorder) with @dnd-kit drag-and-drop; item CRUD helpers |
-| `src/components/resumeBuilder/resumeEditorPopover.tsx` | Edit modal for a selection; batches edits via dot-path `onChange`; Delete/Move-up/down item actions |
+| `src/components/resumeBuilder/classicAdapter.tsx` | Classic template adapter; self-registers via `registerTemplateAdapter`; imports `classic.css`; builds semantic blocks |
+| `src/components/resumeBuilder/professionalAdapter.tsx` | Professional template adapter; single-column, centered header; self-registers via `registerTemplateAdapter` |
+| `src/components/resumeBuilder/mainResume.tsx` | Editor orchestrator; resolves adapter by `templateId`; delegates header + regions + page rendering to adapter |
+| `src/components/resumeBuilder/buildResume.tsx` | Page container; owns resume state; loads resume by route `resumeId`; Change Template modal; PDF generation + preview modal; section controls with @dnd-kit |
+| `src/components/resumeBuilder/resumeEditorPopover.tsx` | Edit modal for a selection (header, summary, experience, project, skill, social, education, training, achievement) |
+| `src/components/resumeBuilder/resumeRepository.ts` | Multi-resume Firestore repository (`getResume`, `listResumes`, `createResume`, `saveResume`, `deleteResume`) + legacy v1→v2 migration |
 | `src/components/resumeBuilder/pdfService.ts` | POSTs resume + layout plan to server (`VITE_API_URL` or `http://localhost:5000`); returns PDF blob |
-| `src/components/resumeBuilder/classic.css` | **Single source of truth** for resume visual styles (used by the server too); design tokens in `:root` (`--resume-*`) — edit here, not in component CSS |
+| `src/components/resumeBuilder/classic.css` | Canonical styles for Classic template (synced with server/templates/classic.css) |
+| `src/components/resumeBuilder/professional.css` | Canonical styles for Professional template (synced with server/templates/professional.css) |
 | `src/components/editableTags/` | `contentEditable` primitives (`EditableText`, `EditableLink`, `EditableTagWithChildren`) |
 | `src/redux/` | `authSlice`, `loadingSlice`, `store.ts` (exports `RootState`) |
 
@@ -30,8 +34,8 @@ React 19 + TypeScript 5.8 + Vite 7 · Redux Toolkit + react-redux · react-route
 - **Auth is localStorage-driven**, not Redux-subscribed: key `yourpholio` holds `{ uid }`. `App.tsx`, `Navbar`, and `ProtectedRoutes` all read it directly.
 - Store only cross-cutting boolean flags (`auth`, `loading`) in Redux; resume editing lives in component state.
 - Immutable edits via `structuredClone(resume)` + dot-path writes through `onChange(path, value)` passed down from `BuildResume` → adapter → edit primitives.
-- CSS Modules (`.module.css`) for component shells; **shared resume visual styles only in `classic.css`** (server depends on it).
-- `pages/home/` is empty — natural landing/dashboard location.
+- CSS Modules (`.module.css`) for component shells; **shared resume visual styles in `classic.css` and `professional.css`** (server depends on them).
+- `pages/home/` contains `dashboard.tsx` (landing page at `/`).
 - TypeScript is strict (`noUnusedLocals`, `noUnusedParameters`); build runs `tsc -b` so type errors fail the build.
 
 ## Layout semantics (do not regress)
