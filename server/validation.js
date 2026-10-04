@@ -40,6 +40,25 @@ const REQUIRED_SECTION_IDS = [
   'experience', 'projects', 'skills', 'social', 'education', 'trainingCourses', 'achievements',
 ];
 
+const validateDesignOverrides = (designOverrides) => {
+  if (designOverrides === undefined) return;
+  if (!designOverrides || typeof designOverrides !== 'object' || Array.isArray(designOverrides)) {
+    throw httpError(422, 'Resume designOverrides must be an object when provided.');
+  }
+  const numberFields = ['pageMargin', 'fontSize', 'lineHeight', 'sectionSpacing', 'itemSpacing', 'sidebarWidth', 'columnGap'];
+  numberFields.forEach((field) => {
+    if (designOverrides[field] !== undefined) {
+      if (typeof designOverrides[field] !== 'number' || !Number.isFinite(designOverrides[field])) {
+        throw httpError(422, `Resume designOverrides.${field} must be a finite number.`);
+      }
+    }
+  });
+  const allowedFonts = ['Inter', 'Arial', 'Georgia'];
+  if (designOverrides.fontFamily !== undefined && !allowedFonts.includes(designOverrides.fontFamily)) {
+    throw httpError(422, `Resume designOverrides.fontFamily must be one of: ${allowedFonts.join(', ')}.`);
+  }
+};
+
 const validateResume = (resume) => {
   if (!resume || typeof resume !== 'object') {
     throw httpError(422, 'Resume must be a non-null object.');
@@ -66,6 +85,8 @@ const validateResume = (resume) => {
   if (!content || typeof content !== 'object') {
     throw httpError(422, 'Resume content is required.');
   }
+
+  validateDesignOverrides(resume.designOverrides);
 
   if (!content.header || typeof content.header !== 'object') {
     throw httpError(422, 'Resume content.header is required.');

@@ -6,6 +6,7 @@ import {
   getDefaultResumeContent,
   type ResumeDocument,
   type ResumeContent,
+  type ResumeDesignOverrides,
 } from './resumeModel';
 
 import {
@@ -20,6 +21,7 @@ const migrateV1ToV2 = (raw: Record<string, unknown>): ResumeDocument => {
   const content = (raw.content ?? {}) as Record<string, unknown>;
   const configuration = (raw.configuration ?? {}) as Record<string, unknown>;
   const placements = (configuration.placements ?? []) as Array<Record<string, unknown>>;
+  const designOverrides = (raw.designOverrides ?? undefined) as ResumeDesignOverrides | undefined;
 
   const placementFor = (id: string) => placements.find((p) => p.sectionId === id);
 
@@ -78,6 +80,7 @@ const migrateV1ToV2 = (raw: Record<string, unknown>): ResumeDocument => {
       },
       sections,
     },
+    designOverrides,
     createdAt: (raw.createdAt as string) ?? new Date().toISOString(),
     updatedAt: (raw.updatedAt as string) ?? new Date().toISOString(),
   };

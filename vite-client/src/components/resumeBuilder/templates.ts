@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { ResumeDocument, ResumeSectionId } from './resumeModel';
+import type { ResumeDesignOverrides, ResumeDocument, ResumeSectionId } from './resumeModel';
 import type { LayoutBlock, LayoutRegion, PageDefinition, PaginatedPage } from './layout';
 import type { EditorSelection } from './resumeEditorPopover';
 
@@ -10,6 +10,7 @@ export interface ResumeTemplateDefinition {
   version: number;
   name: string;
   supportedSections: ResumeSectionId[];
+  defaultDesignOverrides?: ResumeDesignOverrides;
   page: PageDefinition;
   regions: Array<{
     id: string;
@@ -75,15 +76,39 @@ export interface ResumeTemplateAdapter {
   renderPage(
     page: PaginatedPage<ReactNode>,
     headerBlock: LayoutBlock<ReactNode> | null,
+    pageDefinition?: PageDefinition,
   ): ReactNode;
 }
 
 // ─── Classic template definition ─────────────────────────────────────────────
 
+export const getEffectiveDesignOverrides = (
+  template: ResumeTemplateDefinition,
+  overrides?: ResumeDesignOverrides,
+): ResumeDesignOverrides => ({
+  ...template.defaultDesignOverrides,
+  ...overrides,
+});
+
+export const getTemplateDefaults = (templateId: string): ResumeDesignOverrides => {
+  const template = adapterRegistry[templateId];
+  return template?.definition.defaultDesignOverrides ?? {};
+};
+
 export const classicTemplate: ResumeTemplateDefinition = {
   id: 'classic',
   version: 1,
   name: 'Classic Resume',
+  defaultDesignOverrides: {
+    pageMargin: 60,
+    fontFamily: 'Inter',
+    fontSize: 10,
+    lineHeight: 1.2,
+    sectionSpacing: 14,
+    itemSpacing: 8,
+    sidebarWidth: 40,
+    columnGap: 24,
+  },
   supportedSections: [
     'summary',
     'experience',
@@ -112,6 +137,14 @@ export const professionalTemplate: ResumeTemplateDefinition = {
   id: 'professional',
   version: 1,
   name: 'Professional',
+  defaultDesignOverrides: {
+    pageMargin: 60,
+    fontFamily: 'Inter',
+    fontSize: 10,
+    lineHeight: 1.25,
+    sectionSpacing: 16,
+    itemSpacing: 8,
+  },
   supportedSections: [
     'summary',
     'experience',

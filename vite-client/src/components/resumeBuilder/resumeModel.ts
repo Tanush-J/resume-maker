@@ -184,6 +184,19 @@ export interface ResumeContent {
   sections: ResumeSection[];
 }
 
+export type ResumeFontFamily = 'Inter' | 'Arial' | 'Georgia';
+
+export interface ResumeDesignOverrides {
+  pageMargin?: number;
+  fontFamily?: ResumeFontFamily;
+  fontSize?: number;
+  lineHeight?: number;
+  sectionSpacing?: number;
+  itemSpacing?: number;
+  sidebarWidth?: number;
+  columnGap?: number;
+}
+
 export interface ResumeDocument {
   schemaVersion: 2;
   id: string;
@@ -193,6 +206,7 @@ export interface ResumeDocument {
   templateVersion: number;
   /** Column/order/visibility live on each section; there is no separate config. */
   content: ResumeContent;
+  designOverrides?: ResumeDesignOverrides;
   createdAt: string;
   updatedAt: string;
 }

@@ -8,6 +8,7 @@ import { auth } from '../../firebase';
 import { getResume, loadOrCreateResume, MAX_RESUME_NAME_LENGTH, renameResume, saveResume } from './resumeRepository';
 import {
   createEmptySectionItem,
+  type ResumeDesignOverrides,
   type ResumeDocument,
   type ResumeSectionId,
   type ResumeSection,
@@ -25,6 +26,7 @@ import {
   Card,
   Col,
   Flex,
+  InputNumber,
   Modal,
   Row,
   Select,
@@ -220,6 +222,14 @@ const BuildResume = () => {
     }
   };
 
+  const invalidateLayoutArtifacts = () => {
+    setLayoutPlan(null);
+    setPdfUrl((currentUrl) => {
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
+      return null;
+    });
+  };
+
   const handleChangeTemplate = (newTemplateId: string, newTemplateVersion = 1) => {
     if (!resume) return;
 
@@ -233,13 +243,7 @@ const BuildResume = () => {
       };
     });
 
-    // Invalidate old layout plan + stale PDF preview (Plan §23)
-    setLayoutPlan(null);
-    setPdfUrl((currentUrl) => {
-      if (currentUrl) URL.revokeObjectURL(currentUrl);
-      return null;
-    });
-
+    invalidateLayoutArtifacts();
     setIsTemplatePickerOpen(false);
     void message.info(`Template changed to ${newTemplateId}`);
   };
@@ -262,6 +266,7 @@ const BuildResume = () => {
       target[pathParts[pathParts.length - 1]] = value;
       return updatedResume;
     });
+    invalidateLayoutArtifacts();
   };
 
   const toggleSectionEnabled = (sectionId: string) => {
@@ -272,6 +277,7 @@ const BuildResume = () => {
       if (section) section.enabled = !section.enabled;
       return updatedResume;
     });
+    invalidateLayoutArtifacts();
   };
 
   const moveSectionRegion = (sectionId: string, column: 0 | 1) => {
@@ -282,6 +288,7 @@ const BuildResume = () => {
       if (section) section.column = column;
       return updatedResume;
     });
+    invalidateLayoutArtifacts();
   };
 
   /**
@@ -302,12 +309,29 @@ const BuildResume = () => {
       updatedResume.content.sections = reordered;
       return updatedResume;
     });
+    invalidateLayoutArtifacts();
   };
 
   const handleSectionDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
     reorderSections(String(active.id), String(over.id));
+  };
+
+  const updateDesignOverride = <K extends keyof ResumeDesignOverrides>(key: K, value: ResumeDesignOverrides[K]) => {
+    setResume((currentResume) => {
+      if (!currentResume) return currentResume;
+      const updatedResume = structuredClone(currentResume) as ResumeDocument;
+      const nextOverrides = { ...(updatedResume.designOverrides ?? {}) };
+      if (value === undefined || value === null) {
+        delete nextOverrides[key];
+      } else {
+        nextOverrides[key] = value;
+      }
+      updatedResume.designOverrides = Object.keys(nextOverrides).length > 0 ? nextOverrides : undefined;
+      return updatedResume;
+    });
+    invalidateLayoutArtifacts();
   };
 
   // ── Item CRUD helpers ──────────────────────────────────────────────────────
@@ -351,6 +375,7 @@ const BuildResume = () => {
       }
       return updatedResume;
     });
+    invalidateLayoutArtifacts();
 
     // Open the editor for the freshly added item so the user can fill it in.
     if (sectionId !== 'skills') {
@@ -382,6 +407,7 @@ const BuildResume = () => {
       }
       return updatedResume;
     });
+    invalidateLayoutArtifacts();
   };
 
   const moveSectionItem = (sectionId: ResumeSectionId, itemId: string | number, direction: 'up' | 'down') => {
@@ -404,6 +430,7 @@ const BuildResume = () => {
       [items[index], items[targetIndex]] = [items[targetIndex], items[index]];
       return updatedResume;
     });
+    invalidateLayoutArtifacts();
   };
 
   // Map an editor selection to its section id + item index/id so the popover's
@@ -556,6 +583,95 @@ const BuildResume = () => {
                     </Flex>
                   </SortableContext>
                 </DndContext>
+              </Card>
+
+              <Card title="Design" size="small">
+                <Row gutter={[12, 12]}>
+                  {resume.templateId === 'classic' && (
+                    <Col span={8}>
+                      <Typography.Text type="secondary">Column split</Typography.Text>
+                      <Select
+                        value={resume.designOverrides?.sidebarWidth ?? 40}
+                        options={[
+                          { value: 40, label: '60 - 40' },
+                          { value: 30, label: '70 - 30' },
+                          { value: 45, label: '55 - 45' },
+                          { value: 35, label: '65 - 35' },
+                        ]}
+                        onChange={(value) => updateDesignOverride('sidebarWidth', Number(value))}
+                        style={{ width: '100%' }}
+                      />
+                    </Col>
+                  )}
+                  <Col span={resume.templateId === 'classic' ? 8 : 12}>
+                    <Typography.Text type="secondary">Font</Typography.Text>
+                    <Select
+                      value={resume.designOverrides?.fontFamily ?? 'Inter'}
+                      options={[
+                        { value: 'Inter', label: 'Inter' },
+                        { value: 'Arial', label: 'Arial' },
+                        { value: 'Georgia', label: 'Georgia' },
+                      ]}
+                      onChange={(value) => updateDesignOverride('fontFamily', value)}
+                      style={{ width: '100%' }}
+                    />
+                  </Col>
+                  <Col span={resume.templateId === 'classic' ? 8 : 12}>
+                    <Typography.Text type="secondary">Base size</Typography.Text>
+                    <InputNumber
+                      value={resume.designOverrides?.fontSize ?? 10}
+                      min={8}
+                      max={18}
+                      step={1}
+                      onChange={(value) => updateDesignOverride('fontSize', Number(value ?? 10))}
+                      style={{ width: '100%' }}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Typography.Text type="secondary">Page margin</Typography.Text>
+                    <InputNumber
+                      value={resume.designOverrides?.pageMargin ?? 60}
+                      min={20}
+                      max={120}
+                      step={5}
+                      onChange={(value) => updateDesignOverride('pageMargin', Number(value ?? 60))}
+                      style={{ width: '100%' }}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Typography.Text type="secondary">Line height</Typography.Text>
+                    <InputNumber
+                      value={resume.designOverrides?.lineHeight ?? 1.2}
+                      min={0.8}
+                      max={2}
+                      step={0.05}
+                      onChange={(value) => updateDesignOverride('lineHeight', Number(value ?? 1.2))}
+                      style={{ width: '100%' }}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Typography.Text type="secondary">Section gap</Typography.Text>
+                    <InputNumber
+                      value={resume.designOverrides?.sectionSpacing ?? 14}
+                      min={0}
+                      max={40}
+                      step={1}
+                      onChange={(value) => updateDesignOverride('sectionSpacing', Number(value ?? 14))}
+                      style={{ width: '100%' }}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Typography.Text type="secondary">Item gap</Typography.Text>
+                    <InputNumber
+                      value={resume.designOverrides?.itemSpacing ?? 8}
+                      min={0}
+                      max={40}
+                      step={1}
+                      onChange={(value) => updateDesignOverride('itemSpacing', Number(value ?? 8))}
+                      style={{ width: '100%' }}
+                    />
+                  </Col>
+                </Row>
               </Card>
             </Flex>
           </div>

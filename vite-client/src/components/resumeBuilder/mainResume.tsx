@@ -14,7 +14,7 @@ import type { ResumeDocument } from './resumeModel';
 import type { SerializedLayoutPlan } from './layout';
 import type { EditorSelection } from './resumeEditorPopover';
 import { MeasuredResumePages } from './layoutComponents';
-import { getTemplateAdapter } from './templates';
+import { getEffectiveDesignOverrides, getTemplateAdapter } from './templates';
 import './mainResume.css';
 
 // Side-effect imports — register the adapters into the registry.
@@ -31,6 +31,17 @@ interface MainResumeProps {
 const MainResume = ({ resume, onChange, onSelectEditor, onLayoutPlanChange }: MainResumeProps) => {
   const adapter = getTemplateAdapter(resume.templateId);
   const { definition } = adapter;
+  const designOverrides = getEffectiveDesignOverrides(definition, resume.designOverrides);
+  const effectivePage = {
+    ...definition.page,
+    padding: {
+      ...definition.page.padding,
+      top: designOverrides.pageMargin ?? definition.page.padding.top,
+      right: designOverrides.pageMargin ?? definition.page.padding.right,
+      bottom: designOverrides.pageMargin ?? definition.page.padding.bottom,
+      left: designOverrides.pageMargin ?? definition.page.padding.left,
+    },
+  };
 
   const headerBlock = adapter.createHeaderBlock(resume, { onChange, onSelectEditor });
 
@@ -38,11 +49,12 @@ const MainResume = ({ resume, onChange, onSelectEditor, onLayoutPlanChange }: Ma
 
   return (
     <MeasuredResumePages
-      page={definition.page}
+      page={effectivePage}
       regions={regions}
+      designOverrides={designOverrides}
       onLayoutPlanChange={onLayoutPlanChange}
       planMetadata={{ templateId: definition.id, templateVersion: definition.version }}
-      renderPage={(page) => adapter.renderPage(page, headerBlock)}
+      renderPage={(page) => adapter.renderPage(page, headerBlock, effectivePage)}
     />
   );
 };

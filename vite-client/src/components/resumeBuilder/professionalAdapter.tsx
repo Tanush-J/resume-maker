@@ -517,9 +517,9 @@ const professionalAdapterImpl: ResumeTemplateAdapter = {
     ];
   },
 
-  renderPage(page, headerBlock) {
+  renderPage(page, headerBlock, pageDefinition = professionalTemplate.page) {
     return (
-      <ResumePage page={professionalTemplate.page}>
+      <ResumePage page={pageDefinition}>
         <div className="professionalTemplate">
           <div className="pResumeBody">
             {page.index === 0 && headerBlock && (

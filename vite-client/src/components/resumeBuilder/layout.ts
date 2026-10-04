@@ -51,6 +51,13 @@ export interface LayoutBlock<T = unknown> {
   children?: LayoutBlock<T>[];
   parts?: LayoutBlock<T>[];
   height?: number;
+  top?: number;
+  bottom?: number;
+  /** Flow consumed before this block begins on the current page/region. */
+  flowBefore?: number;
+  regionTop?: number;
+  marginTop?: number;
+  marginBottom?: number;
   keepTogether?: boolean;
   /** Allow the block's children to be split onto multiple pages (block itself is a grouping, not atomic). */
   allowSplit?: boolean;
@@ -115,19 +122,6 @@ export interface SerializedLayoutPlan {
 const getUsableHeight = (page: PageDefinition) =>
   page.height - page.padding.top - page.padding.bottom;
 
-/**
- * Estimated rendered height of a continuation heading
- * (`.sectionContinuationHeading` in classic.css). Continuation blocks are
- * synthesized by the paginator and never exist in the measurement DOM, so
- * this constant is the only height signal available — it keeps continuation
- * pages from overfilling.
- *
- * Value verified against the actual rendered element (plan §25): measured
- * 31px at the shared `classic.css` geometry (padding 8px top + h2 border +
- * 0.85em text). Keep in sync if `.sectionContinuationHeading` CSS changes.
- */
-const CONTINUATION_HEADING_H = 31;
-
 const getChildren = <T>(block: LayoutBlock<T>) => block.children ?? block.parts;
 
 const expandSplittableBlock = <T>(block: LayoutBlock<T>): LayoutBlock<T>[] => {
@@ -142,28 +136,61 @@ const expandSplittableBlock = <T>(block: LayoutBlock<T>): LayoutBlock<T>[] => {
 export const flattenLayoutBlocks = <T>(blocks: LayoutBlock<T>[]) =>
   blocks.flatMap(expandSplittableBlock);
 
-export const paginateLayout = <T>(layout: LayoutDocument<T>): PaginatedPage<T>[] => {
+export const paginateLayout = <T>(
+  layout: LayoutDocument<T>,
+  measuredHeights: Record<string, number> = {},
+): PaginatedPage<T>[] => {
   const usableHeight = getUsableHeight(layout.page);
   const headerHeight = layout.headerHeight ?? 0;
   const budgetFor = (pageIndex: number) =>
-    pageIndex === 0 ? Math.max(100, usableHeight - headerHeight) : usableHeight;
+    pageIndex === 0 ? Math.max(0, usableHeight - headerHeight) : usableHeight;
 
-  /**
-   * Height of a block. Containers (blocks with children) are transparent
-   * grouping wrappers — their height is the sum of their descendants, which
-   * is what actually renders on a page. Leaves use their measured height.
-   */
-  const heightOf = (block: LayoutBlock<T>): number => {
-    if (block.children?.length) {
-      return block.children.reduce((sum, child) => sum + heightOf(child), 0);
+  const measuredHeightOf = (block: LayoutBlock<T>): number => {
+    const key = `${block.regionId}:${block.id}`;
+    const measured = measuredHeights[key];
+    if (typeof measured === 'number' && Number.isFinite(measured)) {
+      return measured;
     }
     return block.height ?? 0;
   };
+
+  const flowHeightOf = (block: LayoutBlock<T>): number => {
+    if (typeof block.top === 'number' && typeof block.bottom === 'number' && block.bottom >= block.top) {
+      return block.bottom - block.top;
+    }
+    if (block.children?.length) {
+      return block.children.reduce((sum, child) => sum + flowHeightOf(child), 0);
+    }
+    return measuredHeightOf(block);
+  };
+
+  const derivedFlowBefore = (
+    block: LayoutBlock<T>,
+    _previousBlock?: LayoutBlock<T>,
+    _regionTop = 0,
+  ): number => {
+    // Page-local flow is tracked by the paginator itself (`pageCursor`), not by
+    // reusing original browser DOM coordinates. The measured `top`/`bottom`
+    // values are relative to the full unpaginated region, so they are not valid
+    // once a block is assigned to a specific page.
+    if (typeof block.flowBefore === 'number' && Number.isFinite(block.flowBefore)) {
+      return Math.max(0, block.flowBefore);
+    }
+    return 0;
+  };
+
+  /**
+   * Physical flow consumed by a block. Prefer the browser's actual top/bottom
+   * geometry. Only fall back to summing child flow when a measured container
+   * bounds are unavailable.
+   */
+  const heightOf = (block: LayoutBlock<T>): number => flowHeightOf(block);
 
   const paginatedRegions = layout.regions.map((region) => {
     const pages: LayoutBlock<T>[][] = [[]];
     const overflowedBlockIds: string[] = [];
     let pageIndex = 0;
+    let pageCursor = 0;
     /**
      * Nearest splittable container that carries `continuationMetadata` while
      * placing its subtree — i.e. the section whose continuation heading should
@@ -180,11 +207,10 @@ export const paginateLayout = <T>(layout: LayoutDocument<T>): PaginatedPage<T>[]
      */
     let ownerBroke = false;
 
-    const currentHeight = () => pages[pageIndex].reduce((sum, b) => sum + heightOf(b), 0);
-
     const ensurePage = () => {
       pageIndex += 1;
       if (pages[pageIndex] === undefined) pages.push([]);
+      pageCursor = 0;
       continuedSectionId = null;
     };
 
@@ -198,64 +224,88 @@ export const paginateLayout = <T>(layout: LayoutDocument<T>): PaginatedPage<T>[]
       const owner = continuationOwner;
       const meta = owner?.continuationMetadata;
       if (!meta || !owner) return;
-      if (!ownerBroke) return; // section doesn't span pages yet — no heading
-      if (continuedSectionId === meta.sectionId) return; // once per page
+      if (!ownerBroke) return;
+      if (continuedSectionId === meta.sectionId) return;
       continuedSectionId = meta.sectionId;
-      pages[pageIndex].push({
-        id: `${owner.id}-continuation`,
+      const continuationId = `${owner.id}-continuation`;
+      const continuationBlock: LayoutBlock<T> = {
+        id: continuationId,
         sourceId: owner.sourceId ?? owner.id,
         regionId: owner.regionId,
         content: owner.continuation as T,
-        height: CONTINUATION_HEADING_H,
+        height: measuredHeights[`${owner.regionId}:${continuationId}`] ?? owner.height ?? 0,
+        flowBefore: 0,
         keepTogether: true,
         splitStrategy: 'none',
         continuationMetadata: meta,
-      });
+      };
+      pages[pageIndex].push(continuationBlock);
+      pageCursor += heightOf(continuationBlock);
     };
 
     const placeBlock = (block: LayoutBlock<T>, nextBlock?: LayoutBlock<T>): void => {
       const budget = budgetFor(pageIndex);
-      const used = currentHeight();
       const height = heightOf(block);
       const hasChildren = Boolean(block.children?.length);
+      const previousOnPage = pages[pageIndex].at(-1) ?? undefined;
+      const blockFlowBefore = derivedFlowBefore(block, previousOnPage, 0);
+      const blockCost = blockFlowBefore + height;
 
-      // ── Leaf: atomic unit (heading, bullet, sidebar item, skills) ──
-      if (!hasChildren) {
-        if (height > budget && used === 0) overflowedBlockIds.push(block.id);
-
-        // keepWithNext (section heading): never strand at the bottom of a page
-        // while the content that must follow it lands on the next page. The
-        // heading is the first block of a NEW section, so no continuation
-        // heading belongs at the top of the page it moves to.
-        if (block.keepWithNext && nextBlock && used > 0) {
-          const fitsWithNext = used + height + heightOf(nextBlock) <= budget;
-          if (used + height <= budget && !fitsWithNext) {
-            ensurePage();
-            pages[pageIndex].push(block);
-            return;
-          }
-        }
-
-        const needsBreak = block.breakBefore || (used > 0 && used + height > budget);
-        if (needsBreak) {
-          if (used > 0 && used + height > budget) ownerBroke = true;
+      if (block.keepWithNext && nextBlock && pageCursor > 0) {
+        const nextFlowBefore = derivedFlowBefore(nextBlock, block, 0);
+        const nextBlockCost = nextFlowBefore + heightOf(nextBlock);
+        const combined = blockCost + nextBlockCost;
+        if (pageCursor + combined > budget && pageCursor + blockCost <= budget) {
+          ownerBroke = true;
           ensurePage();
           pushContinuationHeading();
         }
+      }
+
+      if (pageCursor > 0 && pageCursor + blockCost > budget) {
+        if (pageCursor > 0) {
+          ownerBroke = true;
+          ensurePage();
+          pushContinuationHeading();
+        }
+      }
+
+      if (pageCursor === 0 && blockCost > budget) {
+        overflowedBlockIds.push(block.id);
+      }
+
+      if (block.breakBefore && pageCursor > 0) {
+        ownerBroke = true;
+        ensurePage();
+        pushContinuationHeading();
+      }
+
+      const currentPageHasContent = pages[pageIndex].length > 0;
+      if (currentPageHasContent && pageCursor + blockCost > budget) {
+        if (pageCursor > 0) {
+          ownerBroke = true;
+          ensurePage();
+          pushContinuationHeading();
+        }
+      }
+
+      // ── Leaf: atomic unit (heading, bullet, sidebar item, skills) ──
+      if (!hasChildren) {
+        if (pageCursor + blockCost > budget && pageCursor === 0) {
+          overflowedBlockIds.push(block.id);
+        }
         pages[pageIndex].push(block);
+        pageCursor += blockCost;
         return;
       }
 
       // ── Atomic container: entire group stays on one page ──
       if (!block.allowSplit) {
-        if (height > budget && used === 0) overflowedBlockIds.push(block.id);
-        const needsBreak = block.breakBefore || (used > 0 && used + height > budget);
-        if (needsBreak) {
-          if (used > 0 && used + height > budget) ownerBroke = true;
-          ensurePage();
-          pushContinuationHeading();
+        if (pageCursor + blockCost > budget && pageCursor === 0) {
+          overflowedBlockIds.push(block.id);
         }
         pages[pageIndex].push(block);
+        pageCursor += blockCost;
         return;
       }
 
@@ -272,8 +322,6 @@ export const paginateLayout = <T>(layout: LayoutDocument<T>): PaginatedPage<T>[]
 
       const children = block.children ?? [];
       for (let i = 0; i < children.length; i++) {
-        // placeBlock handles the page break itself (leaf/atomic branches)
-        // and emits the continuation heading at the TOP of the new page.
         placeBlock(children[i], children[i + 1]);
       }
 

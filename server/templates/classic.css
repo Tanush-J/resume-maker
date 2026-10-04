@@ -40,6 +40,8 @@
 
   /* Font */
   --resume-font-body: 'Inter', Arial, sans-serif;
+  --resume-font-size: 10px;
+  --resume-line-height: 1.2;
 
   /* Sizes */
   --resume-size-name: 38px;
@@ -48,9 +50,11 @@
   --resume-size-bullet: 13px;
 
   /* Spacing */
-  --resume-space-section: 0;
-  --resume-space-item: 0;
+  --resume-space-section: 14px;
+  --resume-space-item: 8px;
   --resume-space-bullet: 0;
+  --resume-sidebar-width: 40%;
+  --resume-column-gap: 24px;
 }
 
 /* ── 1. Page shell ─────────────────────────────────────────────────────────── */
@@ -87,7 +91,7 @@
 .resumeBody {
   --p-color: var(--resume-color-body);
   color: black;
-  font-size: 14px;
+  font-size: var(--resume-font-size);
   /*
    * Deterministic line boxes (rendering parity, plan §35):
    * the editor shell injects Ant Design global styles (`body { line-height:
@@ -97,7 +101,7 @@
    * space. Pinning an explicit line-height for every element removes the
    * environment dependency so browser measurement == PDF rendering.
    */
-  line-height: normal;
+  line-height: var(--resume-line-height);
 }
 
 /* Pin line boxes for headings/text the resume uses (browser == PDF). */
@@ -160,7 +164,8 @@
  */
 .resumeInfoBody {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 40%);
+  grid-template-columns: minmax(0, calc(100% - var(--resume-sidebar-width))) minmax(0, var(--resume-sidebar-width));
+  column-gap: var(--resume-column-gap);
   align-items: start;
 }
 

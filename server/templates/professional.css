@@ -27,11 +27,16 @@
   /* Line-box parity (same lesson as classic.css §0): the editor shell
      injects Ant Design globals (body { line-height: 22px }) that would make
      browser line boxes taller than Puppeteer's UA `normal`. Pin everything. */
-  line-height: normal;
-  font-family: 'Inter', Arial, sans-serif;
+  --resume-font-body: 'Inter', Arial, sans-serif;
+  --resume-font-size: 10px;
+  --resume-line-height: 1.2;
+  --resume-space-section: 14px;
+  --resume-space-item: 8px;
+  line-height: var(--resume-line-height);
+  font-family: var(--resume-font-body);
   color: #1f2430;
   background: white;
-  font-size: 13px;
+  font-size: var(--resume-font-size);
 }
 
 .professionalTemplate * {

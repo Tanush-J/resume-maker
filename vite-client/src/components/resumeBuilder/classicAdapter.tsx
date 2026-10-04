@@ -495,9 +495,9 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
     ];
   },
 
-  renderPage(page, headerBlock) {
+  renderPage(page, headerBlock, pageDefinition = classicTemplate.page) {
     return (
-      <ResumePage page={classicTemplate.page}>
+      <ResumePage page={pageDefinition}>
         <div className="resumeBackground">
           <div className="resumeBody">
             {page.index === 0 && headerBlock && (
