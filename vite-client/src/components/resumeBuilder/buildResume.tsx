@@ -248,7 +248,7 @@ const BuildResume = () => {
     void message.info(`Template changed to ${newTemplateId}`);
   };
 
-  const updateResumeValue = (path: string, value: string) => {
+  const updateResumeValue = (path: string, value: string | number | string[] | null | undefined) => {
     setResume((currentResume) => {
       if (!currentResume) return currentResume;
 

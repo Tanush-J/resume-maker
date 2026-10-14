@@ -25,10 +25,12 @@ type EditorSelection =
   | { type: 'trainingCourse'; id: string }
   | { type: 'achievement'; id: string };
 
+type ResumeEditorValue = string | number | string[] | null | undefined;
+
 interface ResumeEditorPopoverProps {
   resume: ResumeDocument;
   selection: EditorSelection;
-  onChange: (path: string, value: string) => void;
+  onChange: (path: string, value: ResumeEditorValue) => void;
   onClose: () => void;
   onDeleteItem?: (selection: NonNullable<EditorSelection>) => void;
   onMoveItem?: (selection: NonNullable<EditorSelection>, direction: 'up' | 'down') => void;
@@ -187,22 +189,26 @@ const ResumeEditorPopover = ({ resume, selection, onChange, onClose, onDeleteIte
     }
   };
 
-  const handleFinish = async (values: Record<string, string>) => {
+  const handleFinish = async (values: Record<string, unknown>) => {
     const prefix = getPrefix();
 
     if (selection.type === 'experience' || selection.type === 'project') {
-      const lines = (values.description || '').split('\n');
-      lines.forEach((item, index) => onChange(`${prefix}.description.${index}`, item));
+      const descriptionValue = String(values.description ?? '');
+      const lines = descriptionValue
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+      onChange(`${prefix}.description`, lines);
     } else if (selection.type === 'education') {
-      onChange(`${prefix}.gpa.type`, values.gpaType || '');
-      onChange(`${prefix}.gpa.score`, values.gpaScore || '');
-      onChange(`${prefix}.gpa.outOf`, values.gpaOutOf || '');
+      onChange(`${prefix}.gpa.type`, String(values.gpaType ?? ''));
+      onChange(`${prefix}.gpa.score`, Number(values.gpaScore ?? 0));
+      onChange(`${prefix}.gpa.outOf`, Number(values.gpaOutOf ?? 0));
     }
 
     Object.entries(values).forEach(([field, value]) => {
       if (field === 'description' && (selection.type === 'experience' || selection.type === 'project')) return;
       if (selection.type === 'education' && field.startsWith('gpa')) return;
-      onChange(`${prefix}.${field}`, value);
+      onChange(`${prefix}.${field}`, typeof value === 'string' ? value : String(value ?? ''));
     });
 
     onClose();

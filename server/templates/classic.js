@@ -106,10 +106,10 @@ const icon = (className) => `<i class="${escapeHtml(className)}"></i>`;
 const bullets = (items = []) => `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
 const separator = '<div class="itemSeperator"></div>';
 
-const renderExperience = (items = []) => items.map((item) => {
+const renderExperience = (items = []) => items.map((item, itemIndex) => {
   const description = item.description?.length ? item.description : [''];
-  return description.map((bullet, index) => `
-    <div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(item.id)}-bullet-${index}" data-source-id="${escapeHtml(item.id)}">
+  const body = description.map((bullet, index) => `
+    <div class="itemObject resumeItemFragment ${index === 0 ? 'resumeExperienceEntry' : 'resumeExperienceBullet'}" data-layout-block="${escapeHtml(index === 0 ? `${item.id}-head` : `${item.id}-bullet-${index}`)}" data-source-id="${escapeHtml(item.id)}">
       ${index === 0 ? `
         ${item.designation ? `<h3>${escapeHtml(item.designation)}</h3>` : ''}
         ${item.company ? `<h4>${escapeHtml(item.company)}</h4>` : ''}
@@ -120,16 +120,18 @@ const renderExperience = (items = []) => items.map((item) => {
         </div>` : ''}
       <ul><li>${escapeHtml(bullet)}</li></ul>
     </div>`).join('');
+  return `${itemIndex > 0 ? separator : ''}${body}`;
 }).join('');
 
-const renderProjects = (items = []) => items.filter((item) => item.show).map((item) => {
+const renderProjects = (items = []) => items.filter((item) => item.show).map((item, index, visibleItems) => {
   const description = item.description?.length ? item.description : [''];
-  return description.map((bullet, index) => `
-    <div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(item.id)}-bullet-${index}" data-source-id="${escapeHtml(item.id)}">
-      ${index === 0 ? `<h3>${escapeHtml(item.title)}</h3>
+  const body = description.map((bullet, bulletIndex) => `
+    <div class="itemObject resumeItemFragment ${bulletIndex === 0 ? 'resumeProjectsEntry' : 'resumeProjectsBullet'}" data-layout-block="${escapeHtml(item.id)}-bullet-${bulletIndex}" data-source-id="${escapeHtml(item.id)}">
+      ${bulletIndex === 0 ? `<h3>${escapeHtml(item.title)}</h3>
       <div class="linkField"><a target="_blank" href="${escapeHtml(item.link)}">${icon('fa-solid fa-link fa-xs')}${escapeHtml(item.link)}</a></div>` : ''}
       <ul><li>${escapeHtml(bullet)}</li></ul>
     </div>`).join('');
+  return `${index > 0 ? separator : ''}${body}`;
 }).join('');
 
 const renderSocial = (items = []) => items.map((item, index) => `
@@ -138,7 +140,7 @@ const renderSocial = (items = []) => items.map((item, index) => `
     <div class="linkField"><span>${escapeHtml(item.link)}</span></div>
   </div>${index < items.length - 1 ? separator : ''}`).join('');
 
-const renderEducation = (items = []) => items.filter((item) => item.show).map((item, index, visibleItems) => `
+const renderEducation = (items = []) => items.filter((item) => item.show).map((item) => `
   <div class="itemObject educationItem">
     <div>
       <h3>${escapeHtml(item.degree)}</h3>
@@ -149,25 +151,25 @@ const renderEducation = (items = []) => items.filter((item) => item.show).map((i
       <p>${escapeHtml(item.gpa.type)}</p>
       <div><span class="score">${escapeHtml(item.gpa.score)}</span><span> / </span><span>${escapeHtml(item.gpa.outOf)}</span></div>
     </div>
-  </div>${index < visibleItems.length - 1 ? separator : ''}`).join('');
+  </div>`).join('');
 
-const renderCourses = (items = []) => items.filter((item) => item.show).map((item, index, visibleItems) => `
+const renderCourses = (items = []) => items.filter((item) => item.show).map((item) => `
   <div class="itemObject">
     <div class="linkContainer">
       <h4>${escapeHtml(item.title)}</h4>
       <a class="certificateItemLink" target="_blank" href="${escapeHtml(item.link)}">${icon('fa-solid fa-link fa-base')}</a>
     </div>
     <p>${escapeHtml(item.description)}</p>
-  </div>${index < visibleItems.length - 1 ? separator : ''}`).join('');
+  </div>`).join('');
 
-const renderAchievements = (items = []) => items.map((item, index) => `
+const renderAchievements = (items = []) => items.map((item) => `
   <div class="itemObject">
     <div class="linkContainer">
       <h4>${escapeHtml(item.title)}</h4>
       <a class="certificateItemLink" target="_blank" href="${escapeHtml(item.link)}">${icon('fa-solid fa-link fa-base')}</a>
     </div>
     <p>${escapeHtml(item.description)}</p>
-  </div>${index < items.length - 1 ? separator : ''}`).join('');
+  </div>`).join('');
 
 const section = (visible, className, title, body, sectionId) => visible
   ? `<div class="${className}" data-section-id="${escapeHtml(sectionId)}"><div class="sectionHeading" data-layout-block="${escapeHtml(sectionId)}-heading"><h2>${title}</h2></div>${body}</div>`
@@ -254,9 +256,12 @@ const buildMainFragments = (resume) => {
 
     if (sectionId === 'experience') {
       fragments.push({ html: `<div class="resumeExperienceSection"><div class="sectionHeading"><h2>Experience</h2></div></div>`, height: HEADING_H, sectionId, continuationHeadingHtml });
-      for (const item of content.experienceSection) {
+      content.experienceSection.forEach((item, itemIndex) => {
         const bullets = item.description?.length ? item.description : [''];
         bullets.forEach((bullet, i) => {
+          const separatorHtml = itemIndex > 0 && i === 0 ? separator : '';
+          const entryClass = i === 0 ? 'resumeExperienceEntry' : 'resumeExperienceBullet';
+          const blockId = i === 0 ? `${item.id}-head` : `${item.id}-bullet-${i}`;
           const headerHtml = i === 0 ? `
             ${item.designation ? `<h3>${escapeHtml(item.designation)}</h3>` : ''}
             ${item.company ? `<h4>${escapeHtml(item.company)}</h4>` : ''}
@@ -266,36 +271,38 @@ const buildMainFragments = (resume) => {
               ${item.link ? `<a class="experienceItemLink" target="_blank" href="${escapeHtml(item.link)}"><i class="fa-solid fa-link"></i>Link</a>` : ''}
             </div>` : '';
           const bulletHtml = `<ul><li>${escapeHtml(bullet)}</li></ul>`;
-          const height = (i === 0 ? ITEM_HEADER_H : 0) + estimateBulletHeight(bullet);
+          const height = (itemIndex > 0 && i === 0 ? 1 : 0) + (i === 0 ? ITEM_HEADER_H : 0) + estimateBulletHeight(bullet);
           fragments.push({
-            html: `<div class="resumeExperienceSection"><div class="itemObject resumeItemFragment">${headerHtml}${bulletHtml}</div></div>`,
+            html: `${separatorHtml}<div class="resumeExperienceSection ${entryClass}"><div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(blockId)}" data-source-id="${escapeHtml(item.id)}">${headerHtml}${bulletHtml}</div></div>`,
             height,
             sectionId,
             continuationHeadingHtml,
           });
         });
-      }
+      });
     }
 
     if (sectionId === 'projects') {
       const visibleProjects = content.projectsSection.filter((p) => p.show);
       if (!visibleProjects.length) continue;
       fragments.push({ html: `<div class="resumeProjectsSection"><div class="sectionHeading"><h2>Projects</h2></div></div>`, height: HEADING_H, sectionId, continuationHeadingHtml });
-      for (const item of visibleProjects) {
+      visibleProjects.forEach((item, visibleIndex) => {
         const bullets = item.description?.length ? item.description : [''];
         bullets.forEach((bullet, i) => {
+          const separatorHtml = visibleIndex > 0 && i === 0 ? separator : '';
+          const entryClass = i === 0 ? 'resumeProjectsEntry' : 'resumeProjectsBullet';
           const headerHtml = i === 0 ? `
             <h3>${escapeHtml(item.title)}</h3>
             <div class="linkField"><a target="_blank" href="${escapeHtml(item.link)}"><i class="fa-solid fa-link fa-xs"></i>${escapeHtml(item.link)}</a></div>` : '';
           const height = (i === 0 ? 48 : 0) + estimateBulletHeight(bullet);
           fragments.push({
-            html: `<div class="resumeProjectsSection"><div class="itemObject resumeItemFragment">${headerHtml}<ul><li>${escapeHtml(bullet)}</li></ul></div></div>`,
+            html: `${separatorHtml}<div class="resumeProjectsSection ${entryClass}"><div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(i === 0 ? `${item.id}-head` : `${item.id}-bullet-${i}`)}" data-source-id="${escapeHtml(item.id)}">${headerHtml}<ul><li>${escapeHtml(bullet)}</li></ul></div></div>`,
             height,
             sectionId,
             continuationHeadingHtml,
           });
         });
-      }
+      });
     }
   }
 
@@ -363,7 +370,7 @@ const buildBlockMap = (resume) => {
   // ── Experience ──
   if (content.experienceSection) {
     map.set('experience-heading', `<div class="resumeExperienceSection"><div class="sectionHeading"><h2>Experience</h2></div></div>`);
-    content.experienceSection.forEach((item) => {
+    content.experienceSection.forEach((item, itemIndex) => {
       const bullets = item.description?.length ? item.description : [''];
       bullets.forEach((bullet, i) => {
         const headerHtml = i === 0 ? `
@@ -377,7 +384,9 @@ const buildBlockMap = (resume) => {
         // Semantic blocks: `${id}-head` carries header + first bullet (atomic);
         // `${id}-bullet-N` (N ≥ 1) carries flowing bullets only.
         const blockId = i === 0 ? `${item.id}-head` : `${item.id}-bullet-${i}`;
-        map.set(blockId, `<div class="resumeExperienceSection"><div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(blockId)}">${headerHtml}<ul><li>${escapeHtml(bullet)}</li></ul></div></div>`);
+        const separatorHtml = itemIndex > 0 && i === 0 ? separator : '';
+        const entryClass = i === 0 ? 'resumeExperienceEntry' : 'resumeExperienceBullet';
+        map.set(blockId, `${separatorHtml}<div class="resumeExperienceSection ${entryClass}"><div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(blockId)}" data-source-id="${escapeHtml(item.id)}">${headerHtml}<ul><li>${escapeHtml(bullet)}</li></ul></div></div>`);
       });
     });
   }
@@ -385,15 +394,16 @@ const buildBlockMap = (resume) => {
   // ── Projects ──
   if (content.projectsSection) {
     map.set('projects-heading', `<div class="resumeProjectsSection"><div class="sectionHeading"><h2>Projects</h2></div></div>`);
-    content.projectsSection.forEach((item) => {
-      if (!item.show) return;
+    const visibleProjects = content.projectsSection.filter((item) => item.show);
+    visibleProjects.forEach((item, visibleIndex) => {
       const bullets = item.description?.length ? item.description : [''];
       bullets.forEach((bullet, i) => {
+        const separatorHtml = visibleIndex > 0 && i === 0 ? separator : '';
         const headerHtml = i === 0 ? `
           <h3>${escapeHtml(item.title)}</h3>
           <div class="linkField"><a target="_blank" href="${escapeHtml(item.link)}"><i class="fa-solid fa-link fa-xs"></i>${escapeHtml(item.link)}</a></div>` : '';
         const blockId = i === 0 ? `${item.id}-head` : `${item.id}-bullet-${i}`;
-        map.set(blockId, `<div class="resumeProjectsSection"><div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(blockId)}">${headerHtml}<ul><li>${escapeHtml(bullet)}</li></ul></div></div>`);
+        map.set(blockId, `${separatorHtml}<div class="resumeProjectsSection ${i === 0 ? 'resumeProjectsEntry' : 'resumeProjectsBullet'}"><div class="itemObject resumeItemFragment" data-layout-block="${escapeHtml(blockId)}" data-source-id="${escapeHtml(item.id)}">${headerHtml}<ul><li>${escapeHtml(bullet)}</li></ul></div></div>`);
       });
     });
   }
@@ -405,30 +415,27 @@ const buildBlockMap = (resume) => {
   map.set('social-heading', `<div class="resumeFindMeOnlineSection"><div class="sectionHeading"><h2>Find Me Online</h2></div></div>`);
   content.socialSection.forEach((item, i) => {
     const sep = i < content.socialSection.length - 1 ? separator : '';
-    map.set(`social-${i}`, `<div class="resumeFindMeOnlineSection"><div class="itemObject"><div class="socialIconContainer">${icon(item.icon)}<p>${escapeHtml(item.name)}</p></div><div class="linkField"><span>${escapeHtml(item.link)}</span></div></div>${sep}</div>`);
+    map.set(`social-${i}`, `<div class="resumeFindMeOnlineSection"><div class="itemObject"><div class="socialIconContainer">${icon(item.icon)}<p>${escapeHtml(item.name)}</p></div><div class="linkField"><span>${escapeHtml(item.link)}</span></div></div></div>${sep}`);
   });
 
   // Education
   map.set('education-heading', `<div class="resumeEducationSection"><div class="sectionHeading"><h2>Education</h2></div></div>`);
   content.educationSection.forEach((item, i) => {
     if (!item.show) return;
-    const sep = i < content.educationSection.length - 1 ? separator : '';
-    map.set(`education-${i}`, `<div class="resumeEducationSection"><div class="itemObject educationItem"><div><h3>${escapeHtml(item.degree)}</h3><h4>${escapeHtml(item.location)}</h4><span>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</span></div><div class="educationItemGpa"><p>${escapeHtml(item.gpa.type)}</p><div><span class="score">${escapeHtml(item.gpa.score)}</span><span> / </span><span>${escapeHtml(item.gpa.outOf)}</span></div></div></div>${sep}</div>`);
+    map.set(`education-${i}`, `<div class="resumeEducationSection"><div class="itemObject educationItem"><div><h3>${escapeHtml(item.degree)}</h3><h4>${escapeHtml(item.location)}</h4><span>${escapeHtml(item.start)} - ${escapeHtml(item.end)}</span></div><div class="educationItemGpa"><p>${escapeHtml(item.gpa.type)}</p><div><span class="score">${escapeHtml(item.gpa.score)}</span><span> / </span><span>${escapeHtml(item.gpa.outOf)}</span></div></div></div></div>`);
   });
 
   // Training / Courses
   map.set('trainingCourses-heading', `<div class="resumeTrainingCoursesSection"><div class="sectionHeading"><h2>Training / Courses</h2></div></div>`);
   content.trainingCoursesSection.forEach((item, i) => {
     if (!item.show) return;
-    const sep = i < content.trainingCoursesSection.length - 1 ? separator : '';
-    map.set(`trainingCourses-${i}`, `<div class="resumeTrainingCoursesSection"><div class="itemObject"><div class="linkContainer"><h4>${escapeHtml(item.title)}</h4><a class="certificateItemLink" target="_blank" href="${escapeHtml(item.link)}">${icon('fa-solid fa-link fa-base')}</a></div><p>${escapeHtml(item.description)}</p></div>${sep}</div>`);
+    map.set(`trainingCourses-${i}`, `<div class="resumeTrainingCoursesSection"><div class="itemObject"><div class="linkContainer"><h4>${escapeHtml(item.title)}</h4><a class="certificateItemLink" target="_blank" href="${escapeHtml(item.link)}">${icon('fa-solid fa-link fa-base')}</a></div><p>${escapeHtml(item.description)}</p></div></div>`);
   });
 
   // Achievements
   map.set('achievements-heading', `<div class="resumeAchievementsSection"><div class="sectionHeading"><h2>Achievements</h2></div></div>`);
   content.achievementsSection.forEach((item, i) => {
-    const sep = i < content.achievementsSection.length - 1 ? separator : '';
-    map.set(`achievements-${i}`, `<div class="resumeAchievementsSection"><div class="itemObject"><div class="linkContainer"><h4>${escapeHtml(item.title)}</h4><a class="certificateItemLink" target="_blank" href="${escapeHtml(item.link)}">${icon('fa-solid fa-link fa-base')}</a></div><p>${escapeHtml(item.description)}</p></div>${sep}</div>`);
+    map.set(`achievements-${i}`, `<div class="resumeAchievementsSection"><div class="itemObject"><div class="linkContainer"><h4>${escapeHtml(item.title)}</h4><a class="certificateItemLink" target="_blank" href="${escapeHtml(item.link)}">${icon('fa-solid fa-link fa-base')}</a></div><p>${escapeHtml(item.description)}</p></div></div>`);
   });
 
   return map;

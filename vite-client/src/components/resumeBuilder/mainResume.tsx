@@ -23,7 +23,7 @@ import './professionalAdapter';
 
 interface MainResumeProps {
   resume: ResumeDocument;
-  onChange: (path: string, value: string) => void;
+  onChange: (path: string, value: string | number | string[] | null | undefined) => void;
   onSelectEditor?: (selection: EditorSelection) => void;
   onLayoutPlanChange?: (plan: SerializedLayoutPlan) => void;
 }

@@ -219,35 +219,38 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
         const head = makeBlock(
           `${experience.id}-head`,
           'main',
-          <div className="resumeExperienceSection">
-            <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'experience', id: experience.id })}>
-              {experience.designation && <EditableText tag="h3" value={experience.designation} onChange={(value) => onChange(`${itemPath}.designation`, value)} editable />}
-              {experience.company && <EditableText tag="h4" value={experience.company} onChange={(value) => onChange(`${itemPath}.company`, value)} editable />}
-              <div className="experienceItemIconContainer">
-                <span>
-                  <i className="fa-solid fa-calendar-days" />
-                  <EditableText tag="span" value={experience.start} onChange={(value) => onChange(`${itemPath}.start`, value)} editable /> - <EditableText tag="span" value={experience.end} onChange={(value) => onChange(`${itemPath}.end`, value)} editable />&nbsp;
-                </span>
-                {experience.location && <span><i className="fa-solid fa-location-dot" /><EditableText tag="span" value={experience.location} onChange={(value) => onChange(`${itemPath}.location`, value)} editable /></span>}
-                {experience.link && <a className="experienceItemLink" target="_blank" href={experience.link} rel="noreferrer"><i className="fa-solid fa-link" />Link</a>}
+          <>
+            {index > 0 && <div className="itemSeperator" />}
+            <div className="resumeExperienceSection resumeExperienceEntry">
+              <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'experience', id: experience.id })}>
+                {experience.designation && <EditableText tag="h3" value={experience.designation} onChange={(value) => onChange(`${itemPath}.designation`, value)} editable />}
+                {experience.company && <EditableText tag="h4" value={experience.company} onChange={(value) => onChange(`${itemPath}.company`, value)} editable />}
+                <div className="experienceItemIconContainer">
+                  <span>
+                    <i className="fa-solid fa-calendar-days" />
+                    <EditableText tag="span" value={experience.start} onChange={(value) => onChange(`${itemPath}.start`, value)} editable /> - <EditableText tag="span" value={experience.end} onChange={(value) => onChange(`${itemPath}.end`, value)} editable />&nbsp;
+                  </span>
+                  {experience.location && <span><i className="fa-solid fa-location-dot" /><EditableText tag="span" value={experience.location} onChange={(value) => onChange(`${itemPath}.location`, value)} editable /></span>}
+                  {experience.link && <a className="experienceItemLink" target="_blank" href={experience.link} rel="noreferrer"><i className="fa-solid fa-link" />Link</a>}
+                </div>
+                <ul>
+                  <EditableText
+                    onChange={(value) => onChange(`${itemPath}.description.0`, value)}
+                    editable
+                    tag="li"
+                    value={bullets[0]}
+                  />
+                </ul>
               </div>
-              <ul>
-                <EditableText
-                  onChange={(value) => onChange(`${itemPath}.description.0`, value)}
-                  editable
-                  tag="li"
-                  value={bullets[0]}
-                />
-              </ul>
             </div>
-          </div>,
+          </>,
         );
 
         const flowingBullets = bullets.slice(1).map((listItem, flowIndex) =>
           makeBlock(
             `${experience.id}-bullet-${flowIndex + 1}`,
             'main',
-            <div className="resumeExperienceSection">
+            <div className="resumeExperienceSection resumeExperienceBullet">
               <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'experience', id: experience.id })}>
                 <ul>
                   <EditableText
@@ -279,42 +282,47 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
 
     // ── Project blocks ──
     const projectsSection = sectionFor('projects') as ProjectsSection | undefined;
+    const visibleProjects = (projectsSection?.items ?? []).flatMap((project, originalIndex) =>
+      project.show ? [{ project, originalIndex }] : [],
+    );
     const projectParts: LayoutBlock<ReactNode>[] = [
       makeSectionHeading('projects', 'main', 'resumeProjectsSection', 'Projects'),
-      ...(projectsSection?.items ?? []).flatMap((project, index) => {
-        if (!project.show) return [];
+      ...visibleProjects.flatMap(({ project, originalIndex }, visibleIndex) => {
         const sectionIndex = content.sections.indexOf(projectsSection!);
-        const itemPath = `sections.${sectionIndex}.items.${index}`;
+        const itemPath = `sections.${sectionIndex}.items.${originalIndex}`;
 
         const bullets = project.description.length ? project.description : [''];
         const head = makeBlock(
           `${project.id}-head`,
           'main',
-          <div className="resumeProjectsSection">
-            <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'project', id: project.id })}>
-              <EditableText onChange={(value) => onChange(`${itemPath}.title`, value)} editable tag="h3" value={project.title} />
-              <div className="linkField">
-                <a target="_blank" href={project.link} rel="noreferrer">
-                  <i className="fa-solid fa-link fa-xs" />{project.link}
-                </a>
+          <>
+            {visibleIndex > 0 && <div className="itemSeperator" />}
+            <div className="resumeProjectsSection resumeProjectsEntry">
+              <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'project', id: project.id })}>
+                <EditableText onChange={(value) => onChange(`${itemPath}.title`, value)} editable tag="h3" value={project.title} />
+                <div className="linkField">
+                  <a target="_blank" href={project.link} rel="noreferrer">
+                    <i className="fa-solid fa-link fa-xs" />{project.link}
+                  </a>
+                </div>
+                <ul>
+                  <EditableText
+                    onChange={(value) => onChange(`${itemPath}.description.0`, value)}
+                    editable
+                    tag="li"
+                    value={bullets[0]}
+                  />
+                </ul>
               </div>
-              <ul>
-                <EditableText
-                  onChange={(value) => onChange(`${itemPath}.description.0`, value)}
-                  editable
-                  tag="li"
-                  value={bullets[0]}
-                />
-              </ul>
             </div>
-          </div>,
+          </>,
         );
 
         const flowingBullets = bullets.slice(1).map((listItem, flowIndex) =>
           makeBlock(
             `${project.id}-bullet-${flowIndex + 1}`,
             'main',
-            <div className="resumeProjectsSection">
+            <div className="resumeProjectsSection resumeProjectsBullet">
               <div className="itemObject" onClick={() => onSelectEditor?.({ type: 'project', id: project.id })}>
                 <ul>
                   <EditableText
@@ -371,18 +379,20 @@ const classicAdapterImpl: ResumeTemplateAdapter = {
           ? [makeBlock(
               `social-${index}`,
               'sidebar',
-              <div className="resumeFindMeOnlineSection">
-                <div className="itemObject" key={social.id} onClick={() => onSelectEditor?.({ type: 'social', id: social.id })}>
-                  <div className="socialIconContainer">
-                    <i className={social.icon} />
-                    <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(socialSection!)}.items.${index}.name`, value)} editable tag="p" value={social.name} />
-                  </div>
-                  <div className="linkField">
-                    <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(socialSection!)}.items.${index}.link`, value)} editable tag="span" value={social.link} />
+              <>
+                <div className="resumeFindMeOnlineSection">
+                  <div className="itemObject" key={social.id} onClick={() => onSelectEditor?.({ type: 'social', id: social.id })}>
+                    <div className="socialIconContainer">
+                      <i className={social.icon} />
+                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(socialSection!)}.items.${index}.name`, value)} editable tag="p" value={social.name} />
+                    </div>
+                    <div className="linkField">
+                      <EditableText onChange={(value) => onChange(`sections.${content.sections.indexOf(socialSection!)}.items.${index}.link`, value)} editable tag="span" value={social.link} />
+                    </div>
                   </div>
                 </div>
                 {index < (socialSection?.items?.length ?? 0) - 1 && <div className="itemSeperator" />}
-              </div>,
+              </>,
             )]
           : [],
       ),

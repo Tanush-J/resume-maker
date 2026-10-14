@@ -114,3 +114,114 @@ test('Classic renderer produces HTML containing summary when present', () => {
   assert.ok(html.includes('Jane Doe'), 'Must render name');
   assert.ok(html.includes('Experienced software engineer'), 'Must render summary');
 });
+
+test('Classic renderer only separates Experience, visible Projects, and Social entries', () => {
+  const classicResume = {
+    ...sampleResume,
+    templateId: 'classic',
+    content: {
+      ...sampleResume.content,
+      sections: [
+        {
+          id: 'experience',
+          enabled: true,
+          column: 0,
+          items: [
+            { id: 'exp-1', designation: 'Engineer', description: ['First bullet', 'Second bullet'] },
+            { id: 'exp-2', designation: 'Lead Engineer', description: ['Third bullet'] },
+          ],
+        },
+        {
+          id: 'projects',
+          enabled: true,
+          column: 0,
+          items: [
+            { id: 'project-hidden', show: false, title: 'Hidden', description: ['Hidden bullet'] },
+            { id: 'project-1', show: true, title: 'Project One', description: ['First project bullet', 'Second project bullet'] },
+            { id: 'project-2', show: true, title: 'Project Two', description: ['Third project bullet'] },
+          ],
+        },
+        {
+          id: 'social',
+          enabled: true,
+          column: 1,
+          items: [
+            { id: 'social-1', name: 'LinkedIn', link: 'https://example.com/one', icon: 'fa-brands fa-linkedin' },
+            { id: 'social-2', name: 'GitHub', link: 'https://example.com/two', icon: 'fa-brands fa-github' },
+          ],
+        },
+        {
+          id: 'education',
+          enabled: true,
+          column: 1,
+          items: [
+            { id: 'education-1', show: true, degree: 'Degree One', location: 'School One', gpa: {} },
+            { id: 'education-2', show: true, degree: 'Degree Two', location: 'School Two', gpa: {} },
+          ],
+        },
+        {
+          id: 'trainingCourses',
+          enabled: true,
+          column: 1,
+          items: [
+            { id: 'course-1', show: true, title: 'Course One' },
+            { id: 'course-2', show: true, title: 'Course Two' },
+          ],
+        },
+        {
+          id: 'achievements',
+          enabled: true,
+          column: 1,
+          items: [
+            { id: 'achievement-1', title: 'Achievement One' },
+            { id: 'achievement-2', title: 'Achievement Two' },
+          ],
+        },
+      ],
+    },
+  };
+  const renderer = getTemplateRenderer('classic', 1);
+  const layoutPlan = {
+    pages: [{
+      regions: [
+        {
+          id: 'main',
+          blocks: [
+            { id: 'experience-heading' },
+            { id: 'exp-1-head' },
+            { id: 'exp-1-bullet-1' },
+            { id: 'exp-2-head' },
+            { id: 'projects-heading' },
+            { id: 'project-1-head' },
+            { id: 'project-1-bullet-1' },
+            { id: 'project-2-head' },
+          ],
+        },
+        {
+          id: 'sidebar',
+          blocks: [
+            { id: 'social-heading' },
+            { id: 'social-0' },
+            { id: 'social-1' },
+            { id: 'education-heading' },
+            { id: 'education-0' },
+            { id: 'education-1' },
+            { id: 'trainingCourses-heading' },
+            { id: 'trainingCourses-0' },
+            { id: 'trainingCourses-1' },
+            { id: 'achievements-heading' },
+            { id: 'achievements-0' },
+            { id: 'achievements-1' },
+          ],
+        },
+      ],
+    }],
+  };
+
+  const countSeparators = (html) => (html.match(/class="itemSeperator"/g) || []).length;
+  const { html: planDrivenHtml } = renderer.render(classicResume, layoutPlan);
+  const { html: fallbackHtml } = renderer.render(classicResume);
+
+  assert.equal(countSeparators(planDrivenHtml), 3, 'Plan-driven output should separate only Experience, Projects, and Social');
+  assert.equal(countSeparators(fallbackHtml), 3, 'Fallback output should separate only Experience, Projects, and Social');
+});

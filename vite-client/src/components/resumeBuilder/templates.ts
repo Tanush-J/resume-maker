@@ -28,9 +28,11 @@ export interface ResumeTemplateDefinition {
 
 // ─── Editor callbacks passed from BuildResume → adapter ──────────────────────
 
+export type ResumePathValue = string | number | string[] | null | undefined;
+
 export interface TemplateAdapterCallbacks {
   /** Update a single scalar value at a dot-separated path inside `resume.content`. */
-  onChange: (path: string, value: string) => void;
+  onChange: (path: string, value: ResumePathValue) => void;
   /** Open the side popover for the given selection. */
   onSelectEditor?: (selection: EditorSelection) => void;
 }

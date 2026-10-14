@@ -172,7 +172,7 @@
 /* ── 4. Section headings ───────────────────────────────────────────────────── */
 
 .sectionHeading {
-  padding: 8px 16px 0;
+  padding: 8px 16px;
 }
 
 .sectionHeading > h2 {
@@ -226,7 +226,7 @@
 .itemObject {
   display: flex;
   flex-direction: column;
-  padding: 8px 16px;
+  padding: 0px 16px;
 }
 
 .itemObject .linkContainer {
@@ -241,7 +241,7 @@
 }
 
 .itemObject h4 {
-  margin: 4px 0 0;
+  margin: 0;
   color: var(--resume-color-accent);
   display: flex;
   align-items: center;
@@ -290,6 +290,22 @@
   height: 1px;
   border-bottom: 1px dashed var(--resume-color-divider);
   margin: 0 16px;
+}
+
+.itemSeperator + .resumeExperienceEntry,
+.itemSeperator + .resumeProjectsEntry,
+.itemSeperator + .resumeEducationSection,
+.itemSeperator + .resumeTrainingCoursesSection,
+.itemSeperator + .resumeAchievementsSection,
+.itemSeperator + .resumeFindMeOnlineSection,
+.resumeExperienceEntry + .resumeExperienceEntry,
+.resumeExperienceBullet + .resumeExperienceEntry,
+.resumeProjectsEntry + .resumeProjectsEntry,
+.resumeProjectsBullet + .resumeProjectsEntry,
+.resumeEducationSection + .resumeEducationSection,
+.resumeTrainingCoursesSection + .resumeTrainingCoursesSection,
+.resumeAchievementsSection + .resumeAchievementsSection {
+  margin-top: var(--resume-space-item);
 }
 
 .skillContainer {
